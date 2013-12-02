@@ -1,0 +1,5 @@
+libvirt-python (1.2.0-1) experimental; urgency=low
+
+  * Initial release (Closes: #731088)
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 02 Dec 2013 08:35:03 +0100
