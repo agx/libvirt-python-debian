@@ -1,13 +1,13 @@
 
 Summary: The libvirt virtualization API python binding
 Name: libvirt-python
-Version: @PY_VERSION@
+Version: 1.2.0
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
 License: LGPLv2+
 Group: Development/Libraries
-BuildRequires: libvirt-devel >= @C_VERSION@
+BuildRequires: libvirt-devel >= 0.9.11
 BuildRequires: python-devel
 
 # Don't want provides for python shared objects
