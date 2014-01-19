@@ -14,7 +14,7 @@ XS-Python-Version: 2.7
 
 Package: python-libvirt
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libvirt0 (>= 1.2.0~)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libvirt0 (>= 1.2.1~)
 XB-Python-Version: ${python:Versions}
 Recommends: libvirt-bin
 Section: python
