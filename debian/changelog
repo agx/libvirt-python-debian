@@ -1,3 +1,10 @@
+libvirt-python (1.2.1-1) unstable; urgency=medium
+
+  * [2de72d5] New upstream version 1.2.1
+  * [de2e87e] Build against newer libvirt
+
+ -- Guido Günther <agx@sigxcpu.org>  Sun, 19 Jan 2014 13:45:35 +0100
+
 libvirt-python (1.2.0-2) unstable; urgency=medium
 
   * Upload to unstable 
