@@ -40,7 +40,7 @@ try:
     spawn([pkgcfg,
            "--atleast-version=%s" % MIN_LIBVIRT_LXC,
          "libvirt"])
-except DistutilsExecError,e:
+except DistutilsExecError:
     have_libvirt_lxc=False
 
 def get_pkgconfig_data(args, mod, required=True):
@@ -122,10 +122,10 @@ class my_build(build):
     def run(self):
         apis = get_api_xml_files()
 
-        self.spawn(["python", "generator.py", "libvirt", apis[0]])
-        self.spawn(["python", "generator.py", "libvirt-qemu", apis[1]])
+        self.spawn([sys.executable, "generator.py", "libvirt", apis[0]])
+        self.spawn([sys.executable, "generator.py", "libvirt-qemu", apis[1]])
         if have_libvirt_lxc:
-            self.spawn(["python", "generator.py", "libvirt-lxc", apis[2]])
+            self.spawn([sys.executable, "generator.py", "libvirt-lxc", apis[2]])
 
         build.run(self)
 
@@ -267,7 +267,7 @@ class my_test(Command):
 
         apis = get_api_xml_files()
 
-        self.spawn(["python", "sanitytest.py", self.build_platlib, apis[0]])
+        self.spawn([sys.executable, "sanitytest.py", self.build_platlib, apis[0]])
 
 
 class my_clean(clean):
@@ -278,7 +278,7 @@ class my_clean(clean):
             remove_tree("build")
 
 setup(name = 'libvirt-python',
-      version = '1.2.0',
+      version = '1.2.1',
       url = 'http://www.libvirt.org',
       maintainer = 'Libvirt Maintainers',
       maintainer_email = 'libvir-list@redhat.com',

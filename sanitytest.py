@@ -39,9 +39,11 @@ for name in dir(libvirt):
     if name[0] == '_':
         continue
     thing = getattr(libvirt, name)
+    # Special-case libvirtError to deal with python 2.4 difference
+    # in Exception class type reporting.
     if type(thing) == int:
         gotenums.append(name)
-    elif type(thing) == type:
+    elif type(thing) == type or name == "libvirtError":
         gottypes.append(name)
         gotfunctions[name] = []
     elif callable(thing):
@@ -83,6 +85,8 @@ for cname in wantfunctions:
         continue
     if name[0:21] == "virConnectDomainEvent" and name[-8:] == "Callback":
         continue
+    if name[0:22] == "virConnectNetworkEvent" and name[-8:] == "Callback":
+        continue
 
 
     # virEvent APIs go into main 'libvirt' namespace not any class
@@ -101,7 +105,7 @@ for cname in wantfunctions:
                 found = True
                 if name not in basicklassmap:
                     basicklassmap[name] = [klassname, name[klen:], cname]
-                elif len(basicklassmap[name]) < klassname:
+                elif len(basicklassmap[name]) < klen:
                     basicklassmap[name] = [klassname, name[klen:], cname]
 
         # Anything which can't map to a class goes into the
@@ -199,8 +203,8 @@ for name in sorted(basicklassmap):
         klass = "virDomain"
         func = "snapshot" + func
 
-    # Names should stsart with lowercase letter...
-    func = string.lower(func[0:1]) + func[1:]
+    # Names should start with lowercase letter...
+    func = func[0:1].lower() + func[1:]
     if func[0:8] == "nWFilter":
         func = "nwfilter" + func[8:]
 
@@ -232,9 +236,9 @@ for name in sorted(finalklassmap):
     if func in gotfunctions[klass]:
         usedfunctions["%s.%s" % (klass, func)] = 1
         if verbose:
-            print "PASS %s -> %s.%s" % (name, klass, func)
+            print("PASS %s -> %s.%s" % (name, klass, func))
     else:
-        print "FAIL %s -> %s.%s       (C API not mapped to python)" % (name, klass, func)
+        print("FAIL %s -> %s.%s       (C API not mapped to python)" % (name, klass, func))
         fail = True
 
 
@@ -249,11 +253,11 @@ for klass in gotfunctions:
 
         key = "%s.%s" % (klass, func)
         if not key in usedfunctions:
-            print "FAIL %s.%s       (Python API not mapped to C)" % (klass, func)
+            print("FAIL %s.%s       (Python API not mapped to C)" % (klass, func))
             fail = True
         else:
             if verbose:
-                print "PASS %s.%s" % (klass, func)
+                print("PASS %s.%s" % (klass, func))
 
 # Phase 7: Validate that all the low level C APIs have binding
 for name in sorted(finalklassmap):
@@ -273,7 +277,7 @@ for name in sorted(finalklassmap):
     try:
         thing = getattr(libvirt.libvirtmod, pyname)
     except AttributeError:
-        print "FAIL libvirt.libvirtmod.%s      (C binding does not exist)" % pyname
+        print("FAIL libvirt.libvirtmod.%s      (C binding does not exist)" % pyname)
         fail = True
 
 if fail:

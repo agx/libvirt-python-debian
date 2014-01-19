@@ -1,3 +1,371 @@
+2014-01-16 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-1.2.1
+    
+    
+2014-01-11 Doug Goldstein  <cardoe@cardoe.com>
+    
+    virStream.sendAll() fix raising an undeclared var
+    The exception is raised from the variable 'e', which was undeclared in
+    this context. Used code that is compatible with old and new Python
+    versions.
+    
+    
+2014-01-02 Doug Goldstein  <cardoe@cardoe.com>
+    
+    Add space after comma for consistency with code style
+    
+    
+2013-12-30 Doug Goldstein  <cardoe@cardoe.com>
+    
+    define __GNUC_PREREQ macro before using it
+    We brought over use of the __GNUC_PREREQ macro from libvirt but didn't
+    bring over the definition of it. This brings over the macro from libvirt
+    sources.
+    
+    
+2013-12-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Rewrite libvirt_charPtrUnwrap to work with Python 3.0->3.2
+    The PyUnicode_AsUTF8 method doesn't exist prior to Python 3.3.
+    It is also somewhat inefficient, so rewrite it to use an
+    intermediate PyBytes object.
+    
+    
+    
+2013-12-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add python3 to the automated build and RPM
+    This updates autobuild.sh to test the python3 build process.
+    The RPM specfile is changed to build a libvirt-python3 RPM
+    on Fedora > 18
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Skip network event callbacks in sanity test
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix return type in override method for virStreamRecv
+    The virStreamRecv override returns a PyObject not an int
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    sanitytest: remove use of string.lower()
+    Call lower() directly on the string object instance, not
+    the class
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    sanitytest: Fix broken comparison between int and string
+    Python2 was forgiving of a comparison between an int and string
+    but Python3 gets very upset.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Switch virStreamSend wrapper to use libvirt_charPtrSizeUnwrap
+    Instead of using a 'z#i' format string to receive byte array,
+    use 'O' and then libvirt_charPtrSizeUnwrap. This lets us hide
+    the Python 3 vs 2 differences in typewrappers.c
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Conditionalize use of PyString_Check and PyInt_Check
+    The PyString and PyInt classes are gone in Python 3, so we must
+    conditionalize their use to be Python 2 only.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    typewrappers: PyInt/PyLong merge for Python3
+    In Python3 the PyInt / PyLong types have merged into a single
+    PyLong type. Conditionalize the use of PyInt to Python 2 only
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    typewrappers: Replace use of PyString class
+    Replace use of PyString with either PyBytes or PyUnicode.
+    The former is used for buffers with explicit sizes, which
+    are used by APIs processing raw bytes.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Replace PyInt_AsLong with helper
+    Replace use of the PyInt_AsLong libvirt_intUnwrap helper.
+    This isolates the need for Python3 specific code in one
+    place
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Replace Py{Int,Long}_FromLong with helpers
+    Replace use of the PyInt_FromLong and PyLong_FromLongLong
+    with libvirt_{int,uint,longlong,ulonglong}Wrap helpers.
+    This isolates the need for Python3 specific code in one
+    place.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Replace PyString_AsString with libvirt_charPtrUnwrap
+    Replace calls to PyString_AsString with the helper method
+    libvirt_charPtrUnwrap. This isolates the code that will
+    change in Python3.
+    
+    In making this change, all callers now have responsibility
+    for free'ing the string.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Replace PyString_FromString with libvirt_constcharPtrWrap
+    Make use of libvirt_constcharPtrWrap in all override code,
+    to match generated code. This will isolate Python3 specific
+    changes in one place.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    sanitytest: Fix libvirtError class handling for Python 2.4
+    The Exception class hiearchy in Python 2.4 reports different
+    data types than in later Python versions. As a result the
+    type(libvirt.libvirtError) does not return 'type'. We just
+    special case handling of this class.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    override: Fix native module registration to work with Python3
+    The way native modules are registered has completely
+    changed, so the code must be #ifdef'd for Python2 & 3
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    examples: Ensure we write bytes to the self-pipe
+    Strings in python3 default to unicode, so when writing to
+    the self-pipe we must be sure to use bytes by calling the
+    encode() method.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    examples: Invoke print("...") instead of print "..."
+    The 'print' method must be called as a function in python3,
+    ie with brackets.
+    
+    
+    
+2013-12-11 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Don't free passed in args in libvirt_charPtrWrap / libvirt_charPtrSizeWrap
+    Functions should not make assumptions about the memory management
+    callers use for parameters
+    
+    
+    
+2013-12-11 Cédric Bosdonnat  <cbosdonnat@suse.com>
+    
+    Added python binding for the new network events API
+    The new network events code requires manual binding code to
+    be written.
+    
+    
+    
+2013-12-09 Doug Goldstein  <cardoe@cardoe.com>
+    
+    test: Invoke print("...") instead of print "..."
+    The 'print' statement no longer exists in Python 3 and now must be
+    called as a function. This is compatible down to Python 2.4 as we are
+    not using any special syntax of the function.
+    
+    
+2013-12-09 Doug Goldstein  <cardoe@cardoe.com>
+    
+    override: Fix exception handling syntax
+    Python 3 no longer accepts 'except Exception, e:' as valid while Python
+    2.4 does not accept the new syntax 'except Exception as e:' so this uses
+    a fall back method that is compatible with both.
+    
+    
+2013-12-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Sort enums and functions when generating code
+    To assist in diff comparisons between code generated with
+    different versions of Python, do an explicit sort of all
+    functions and enums.
+    
+    
+    
+2013-12-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Remove use of string.replace and string.find functions
+    Call the 'replace' and 'find' functions directly on the
+    string variables, instead of via the 'string' module.
+    Python3 only accepts the latter syntax
+    
+    
+    
+2013-12-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Update to use sort() 'key' param
+    The sort() method previously took either a comparator function
+    or a key function. Only the latter is supported in Python3.
+    
+    
+    
+2013-12-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Remove use of 'has_key' function
+    The code 'XXX.has_key(YYYY)' must be changed to be of
+    the form  'YYY in XXXX' which works in Python2 and 3
+    
+    As an added complication, if 'YYY in XXX' is used against
+    an object overriding the '__getitem__' method it does not
+    work in Python 2.4. Instead we must use 'YYY in XXX.keys()'
+    
+    
+    
+2013-12-05 Doug Goldstein  <cardoe@cardoe.com>
+    
+    Update exception catching in generated code
+    Use a syntax for exception handling that works in both Python 2 and
+    Python 3. The new syntax is 'except Exception as e:' but this does not
+    work in older Pythons so we use the most compatible way by just catching
+    the exception and getting the type and the exception value after the
+    fact.
+    
+    
+2013-12-05 Doug Goldstein  <cardoe@cardoe.com>
+    
+    generator: Support exceptions in Python 2 and 3
+    Use a syntax for exception handling that works in both Python 2 and
+    Python 3
+    
+    
+2013-12-05 Doug Goldstein  <cardoe@cardoe.com>
+    
+    setup: Drop unused exception variable
+    Drop the unused exception variable in setup.py. This has the benefit
+    of dropping syntax that is not valid with Python 3.
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Cast iterators to a list() explicitly
+    In python3 various methods list 'dict.keys()' do not
+    return a list, so we must explicitly cast the result.
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Revert "Optimize callback lookup in event handlers"
+    This reverts commit 084729e26905f574b8c057cc4c732b1b6ce852d3.
+    
+    The PyImport_ImportModuleNoBlock method does not exist in
+    python 2.4
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Revert accidental change to exception handling syntax
+    The previous commit changed the exception handling syntax to
+    use 'as' instead of a ','. This doesn't work with python 2.4
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Invoke print("...") instead of print "..."
+    The 'print' method must be called as a function in python3,
+    ie with brackets.
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Remove string.lower(XXX) with XXX.lower()
+    In python3 the string.lower() method doesn't exist, the
+    lower() function can only be executed against a string
+    variable directly. Python2 supported both approaches so
+    this change is compatible
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    generator: Don't use 'list' as a variable name
+    In python3 if we use 'list' as a variable name it causes it
+    to hide the corresponding 'list()' function from the entire
+    function that holds the variable.
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Optimize callback lookup in event handlers
+    The event handler code currently invokes PyImport_ImportModule
+    which is very heavyweight. This is not in fact required, since
+    we know the libvirt module has already been imported. We can
+    thus use PyImport_ImportModuleNoBlock and do away with the
+    global variables caching the imported module reference.
+    
+    
+    
+2013-12-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix use of virDomainEventRegister in python bindings
+    If an app used the virDomainEventRegister binding instead
+    of the virDomainEventRegisterAny binding, it would never
+    have its callback invoked. This is because the code for
+    dispatching from the C libvirt_virConnectDomainEventCallback
+    method was totally fubar.
+    
+    If DEBUG macro was set in the python build the error would
+    become visible
+    
+    "libvirt_virConnectDomainEventCallback dom_class is not a class!"
+    
+    The code in libvirt_virConnectDomainEventCallback was
+    inexplicably complex and has apparently never worked. The
+    fix is to write it the same way as the other callback handlers.
+    
+    
+    
+2013-12-03 Doug Goldstein  <cardoe@cardoe.com>
+    
+    setup: Use user requested python binary
+    When setup.py is kicked off with a python interpreter other than the
+    system 'python', (e.g. python2.7 setup.py build) the build process would
+    switch to 'python' and not use python2.7 as requested by the user. We
+    should always respect the user requested python interpreter and use it.
+    
+    
 2013-11-28 Daniel P. Berrange  <berrange@redhat.com>
     
     Improve quality of sanitytest check
