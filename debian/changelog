@@ -1,3 +1,11 @@
+libvirt-python (1.2.1-2) unstable; urgency=medium
+
+  * [007e79c] Add watch file
+  * [d43cb4c] Fix calling of virStreamSend method. Cherry-picked upstream
+    commit ea9339c878ffc344a3ef0cc659b7bce87125678f
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 05 Feb 2014 22:30:32 +0100
+
 libvirt-python (1.2.1-1) unstable; urgency=medium
 
   * [2de72d5] New upstream version 1.2.1
