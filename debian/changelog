@@ -1,3 +1,9 @@
+libvirt-python (1.2.1-2~bpo70+1) wheezy-backports; urgency=medium
+
+  * Rebuild for wheezy-backports.
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 22 Apr 2014 17:23:00 +0200
+
 libvirt-python (1.2.1-2) unstable; urgency=medium
 
   * [007e79c] Add watch file
