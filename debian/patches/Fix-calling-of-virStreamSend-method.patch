@@ -1,0 +1,28 @@
+From: Robie Basak <robie.basak@canonical.com>
+Date: Thu, 23 Jan 2014 14:24:12 +0000
+Subject: Fix calling of virStreamSend method
+
+Fix calling of virStreamSend method
+
+Change d40861 removed the 'len' argument from the virStreamSend
+C level wrapper, but forgot to remove it from the python level
+wrapper.
+
+Reported-by: Robie Basak <robie.basak@canonical.com>
+Signed-off-by: Daniel P. Berrange <berrange@redhat.com>
+---
+ libvirt-override-virStream.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libvirt-override-virStream.py b/libvirt-override-virStream.py
+index cd44314..ce82da6 100644
+--- a/libvirt-override-virStream.py
++++ b/libvirt-override-virStream.py
+@@ -122,6 +122,6 @@
+         with the call, but may instead be delayed until a
+         subsequent call.
+         """
+-        ret = libvirtmod.virStreamSend(self._o, data, len(data))
++        ret = libvirtmod.virStreamSend(self._o, data)
+         if ret == -1: raise libvirtError ('virStreamSend() failed')
+         return ret
