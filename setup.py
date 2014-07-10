@@ -11,7 +11,6 @@ from distutils.errors import DistutilsExecError
 import distutils
 
 import sys
-import datetime
 import os
 import os.path
 import re
@@ -25,27 +24,33 @@ MIN_LIBVIRT_LXC = "1.0.2"
 if not os.path.exists("build"):
     os.mkdir("build")
 
-pkgcfg = distutils.spawn.find_executable("pkg-config")
+_pkgcfg = -1
+def get_pkgcfg(do_fail=True):
+    global _pkgcfg
+    if _pkgcfg == -1:
+        _pkgcfg = distutils.spawn.find_executable("pkg-config")
+    if _pkgcfg is None and do_fail:
+        raise Exception("pkg-config binary is required to compile libvirt-python")
+    return _pkgcfg
 
-if pkgcfg is None:
-    raise Exception("pkg-config binary is required to compile libvirt-python")
+def check_minimum_libvirt_version():
+    spawn([get_pkgcfg(),
+           "--print-errors",
+           "--atleast-version=%s" % MIN_LIBVIRT,
+           "libvirt"])
 
-spawn([pkgcfg,
-       "--print-errors",
-       "--atleast-version=%s" % MIN_LIBVIRT,
-       "libvirt"])
-
-have_libvirt_lxc=True
-try:
-    spawn([pkgcfg,
-           "--atleast-version=%s" % MIN_LIBVIRT_LXC,
-         "libvirt"])
-except DistutilsExecError:
-    have_libvirt_lxc=False
+def have_libvirt_lxc():
+    try:
+        spawn([get_pkgcfg(),
+               "--atleast-version=%s" % MIN_LIBVIRT_LXC,
+             "libvirt"])
+        return True
+    except DistutilsExecError:
+        return False
 
 def get_pkgconfig_data(args, mod, required=True):
     """Run pkg-config to and return content associated with it"""
-    f = os.popen("%s %s %s" % (pkgcfg, " ".join(args), mod))
+    f = os.popen("%s %s %s" % (get_pkgcfg(), " ".join(args), mod))
 
     line = f.readline()
     if line is not None:
@@ -73,58 +78,72 @@ def get_api_xml_files():
 
     return (libvirt_api, libvirt_qemu_api, libvirt_lxc_api)
 
-ldflags = get_pkgconfig_data(["--libs-only-L"], "libvirt", False)
-cflags = get_pkgconfig_data(["--cflags"], "libvirt", False)
+def get_module_lists():
+    """
+    Determine which modules we are actually building, and all their
+    required config
+    """
+    if get_pkgcfg(do_fail=False) is None:
+        return [], []
 
-c_modules = []
-py_modules = []
+    c_modules = []
+    py_modules = []
+    ldflags = get_pkgconfig_data(["--libs-only-L"], "libvirt", False)
+    cflags = get_pkgconfig_data(["--cflags"], "libvirt", False)
 
-module = Extension('libvirtmod',
-                   sources = ['libvirt-override.c', 'build/libvirt.c', 'typewrappers.c', 'libvirt-utils.c'],
-                   libraries = [ "virt" ],
-                   include_dirs = [ "." ])
-if cflags != "":
-    module.extra_compile_args.append(cflags)
-if ldflags != "":
-    module.extra_link_args.append(ldflags)
-
-c_modules.append(module)
-py_modules.append("libvirt")
-
-moduleqemu = Extension('libvirtmod_qemu',
-                       sources = ['libvirt-qemu-override.c', 'build/libvirt-qemu.c', 'typewrappers.c', 'libvirt-utils.c'],
-                       libraries = [ "virt-qemu" ],
+    module = Extension('libvirtmod',
+                       sources = ['libvirt-override.c', 'build/libvirt.c', 'typewrappers.c', 'libvirt-utils.c'],
+                       libraries = [ "virt" ],
                        include_dirs = [ "." ])
-if cflags != "":
-    moduleqemu.extra_compile_args.append(cflags)
-if ldflags != "":
-    moduleqemu.extra_link_args.append(ldflags)
-
-c_modules.append(moduleqemu)
-py_modules.append("libvirt_qemu")
-
-if have_libvirt_lxc:
-    modulelxc = Extension('libvirtmod_lxc',
-                          sources = ['libvirt-lxc-override.c', 'build/libvirt-lxc.c', 'typewrappers.c', 'libvirt-utils.c'],
-                          libraries = [ "virt-lxc" ],
-                          include_dirs = [ "." ])
     if cflags != "":
-        modulelxc.extra_compile_args.append(cflags)
+        module.extra_compile_args.append(cflags)
     if ldflags != "":
-        modulelxc.extra_link_args.append(ldflags)
+        module.extra_link_args.append(ldflags)
 
-    c_modules.append(modulelxc)
-    py_modules.append("libvirt_lxc")
+    c_modules.append(module)
+    py_modules.append("libvirt")
 
+    moduleqemu = Extension('libvirtmod_qemu',
+                           sources = ['libvirt-qemu-override.c', 'build/libvirt-qemu.c', 'typewrappers.c', 'libvirt-utils.c'],
+                           libraries = [ "virt-qemu" ],
+                           include_dirs = [ "." ])
+    if cflags != "":
+        moduleqemu.extra_compile_args.append(cflags)
+    if ldflags != "":
+        moduleqemu.extra_link_args.append(ldflags)
+
+    c_modules.append(moduleqemu)
+    py_modules.append("libvirt_qemu")
+
+    if have_libvirt_lxc():
+        modulelxc = Extension('libvirtmod_lxc',
+                              sources = ['libvirt-lxc-override.c', 'build/libvirt-lxc.c', 'typewrappers.c', 'libvirt-utils.c'],
+                              libraries = [ "virt-lxc" ],
+                              include_dirs = [ "." ])
+        if cflags != "":
+            modulelxc.extra_compile_args.append(cflags)
+        if ldflags != "":
+            modulelxc.extra_link_args.append(ldflags)
+
+        c_modules.append(modulelxc)
+        py_modules.append("libvirt_lxc")
+
+    return c_modules, py_modules
+
+
+###################
+# Custom commands #
+###################
 
 class my_build(build):
 
     def run(self):
+        check_minimum_libvirt_version()
         apis = get_api_xml_files()
 
         self.spawn([sys.executable, "generator.py", "libvirt", apis[0]])
         self.spawn([sys.executable, "generator.py", "libvirt-qemu", apis[1]])
-        if have_libvirt_lxc:
+        if have_libvirt_lxc():
             self.spawn([sys.executable, "generator.py", "libvirt-lxc", apis[2]])
 
         build.run(self)
@@ -267,7 +286,12 @@ class my_test(Command):
 
         apis = get_api_xml_files()
 
+        if "PYTHONPATH" in os.environ:
+            os.environ["PYTHONPATH"] = self.build_platlib + ":" + os.environ["PYTHONPATH"]
+        else:
+            os.environ["PYTHONPATH"] = self.build_platlib
         self.spawn([sys.executable, "sanitytest.py", self.build_platlib, apis[0]])
+        self.spawn([sys.executable, "/usr/bin/nosetests"])
 
 
 class my_clean(clean):
@@ -277,14 +301,21 @@ class my_clean(clean):
         if os.path.exists("build"):
             remove_tree("build")
 
+
+##################
+# Invoke setup() #
+##################
+
+_c_modules, _py_modules = get_module_lists()
+
 setup(name = 'libvirt-python',
-      version = '1.2.1',
+      version = '1.2.4',
       url = 'http://www.libvirt.org',
       maintainer = 'Libvirt Maintainers',
       maintainer_email = 'libvir-list@redhat.com',
       description = 'The libvirt virtualization API',
-      ext_modules = c_modules,
-      py_modules = py_modules,
+      ext_modules = _c_modules,
+      py_modules = _py_modules,
       package_dir = {
           '': 'build'
       },
