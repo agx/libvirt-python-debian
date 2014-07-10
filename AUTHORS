@@ -23,10 +23,17 @@ The individual contributors are
    Alex Jia <ajia@redhat.com>
    Alex Jia <ajia@redhat.com>
    Alex Jia <ajia@redhat.com>
+   Brian Rak <brak@gameservers.com>
    Chris Lalancette <clalance@redhat.com>
    Chris Lalancette <clalance@redhat.com>
    Claudio Bley <cbley@av-test.de>
    Claudio Bley <cbley@av-test.de>
+   Cole Robinson <crobinso@redhat.com>
+   Cole Robinson <crobinso@redhat.com>
+   Cole Robinson <crobinso@redhat.com>
+   Cole Robinson <crobinso@redhat.com>
+   Cole Robinson <crobinso@redhat.com>
+   Cole Robinson <crobinso@redhat.com>
    Cole Robinson <crobinso@redhat.com>
    Cole Robinson <crobinso@redhat.com>
    Cole Robinson <crobinso@redhat.com>
@@ -201,6 +208,11 @@ The individual contributors are
    Daniel P. Berrange <berrange@redhat.com>
    Daniel P. Berrange <berrange@redhat.com>
    Daniel P. Berrange <berrange@redhat.com>
+   Daniel P. Berrange <berrange@redhat.com>
+   Daniel P. Berrange <berrange@redhat.com>
+   Daniel P. Berrange <berrange@redhat.com>
+   Daniel P. Berrange <berrange@redhat.com>
+   Daniel Veillard <veillard@redhat.com>
    Daniel Veillard <veillard@redhat.com>
    Daniel Veillard <veillard@redhat.com>
    Daniel Veillard <veillard@redhat.com>
@@ -326,6 +338,14 @@ The individual contributors are
    Eric Blake <eblake@redhat.com>
    Eric Blake <eblake@redhat.com>
    Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
    Federico Simoncelli <fsimonce@redhat.com>
    Giuseppe Scrivano <gscrivan@redhat.com>
    Giuseppe Scrivano <gscrivan@redhat.com>
@@ -406,6 +426,8 @@ The individual contributors are
    KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
    Lai Jiangshan <laijs@cn.fujitsu.com>
    Lai Jiangshan <laijs@cn.fujitsu.com>
+   Laine Stump <laine@laine.org>
+   Laine Stump <laine@laine.org>
    Lei Li <lilei@linux.vnet.ibm.com>
    Lei Li <lilei@linux.vnet.ibm.com>
    Marcelo Cerri <mhcerri@linux.vnet.ibm.com>
@@ -417,6 +439,8 @@ The individual contributors are
    Martin Kletzander <mkletzan@redhat.com>
    Martin Kletzander <mkletzan@redhat.com>
    Martin Kletzander <mkletzan@redhat.com>
+   Martin Kletzander <mkletzan@redhat.com>
+   Martin Kletzander <mkletzan@redhat.com>
    MATSUDA Daiki <matsudadik@intellilink.co.jp>
    MATSUDA Daiki <matsudadik@intellilink.co.jp>
    Matthias Bolte <matthias.bolte@googlemail.com>
@@ -428,6 +452,8 @@ The individual contributors are
    Matthias Bolte <matthias.bolte@googlemail.com>
    Matthias Bolte <matthias.bolte@googlemail.com>
    Matthias Bolte <matthias.bolte@googlemail.com>
+   Michal Privoznik <mprivozn@redhat.com>
+   Michal Privoznik <mprivozn@redhat.com>
    Michal Privoznik <mprivozn@redhat.com>
    Michal Privoznik <mprivozn@redhat.com>
    Michal Privoznik <mprivozn@redhat.com>
@@ -477,11 +503,13 @@ The individual contributors are
    Peter Krempa <pkrempa@redhat.com>
    Peter Krempa <pkrempa@redhat.com>
    Peter Krempa <pkrempa@redhat.com>
+   Peter Krempa <pkrempa@redhat.com>
    Philip Hahn <hahn@univention.de>
    Philipp Hahn <hahn@univention.de>
    Philipp Hahn <hahn@univention.de>
    Philipp Hahn <hahn@univention.de>
    Philipp Hahn <hahn@univention.de>
+   Philipp Hahn <hahn@univention.de>
    Richard W.M. Jones <rjones@redhat.com>
    Richard W.M. Jones <rjones@redhat.com>
    Richard W.M. Jones <rjones@redhat.com>
@@ -492,6 +520,7 @@ The individual contributors are
    Richard W.M. Jones <rjones@redhat.com>
    Richard W.M. Jones <rjones@redhat.com>
    Richard W.M. Jones <rjones@redhat.com>
+   Robie Basak <robie.basak@canonical.com>
    Serge Hallyn <serge.hallyn@canonical.com>
    Stefan Berger <stefanb@linux.vnet.ibm.com>
    Stefan Berger <stefanb@us.ibm.com>
