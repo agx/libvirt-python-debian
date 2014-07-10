@@ -1,3 +1,18 @@
+libvirt-python (1.2.4-1) unstable; urgency=medium
+
+  * [5d4293a] Indicate that we break older virtinst
+    by the virStream changes in d43cb4c80a1986a2aa275a80b11685b13b58bfe5.
+    leading to errors like:
+        ERROR    'virStream' object has no attribute 'upload'
+  * [611d8de] New upstream version 1.2.4
+    (Closes: #750323, #753675, #605965)
+  * [498ac54] Drop patches, all fixed upstream
+  * [a319328] Add python3 support
+  * [42e49b0] Depend on newer libvirt for the API XML files
+  * [b0aa3c9] Update gbp.conf for sid builds
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 10 Jul 2014 08:38:03 +0200
+
 libvirt-python (1.2.1-2) unstable; urgency=medium
 
   * [007e79c] Add watch file
