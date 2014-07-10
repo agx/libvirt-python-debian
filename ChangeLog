@@ -1,3 +1,292 @@
+2014-04-07 Laine Stump  <laine@laine.org>
+    
+    build: add BuildRequires for python-lxml and python3-lxml
+    python-lxml is likely always already present anyway (due to so many
+    packages being dependent on it), but at least on my F20 system,
+    python3-lxml wasn't installed, leading to a failure of "python
+    setup.py rpm" without an informative error message.
+    
+    
+2014-04-07 Laine Stump  <laine@laine.org>
+    
+    increment version post-release
+    As is now done with libvirt. git head will always have the version
+    number of the expected *next* release.
+    
+    
+2014-04-02 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix nosetests usage with python3
+    Add RPM deps on python/python3-nose, make RPM build run the
+    test suite and invoke nosetests using correct python binary
+    
+    
+    
+2014-03-31 Brian Rak  <brak@gameservers.com>
+    
+    Fix potential crash when setting partial cpu/memory/numa/interface limits on domains
+    The number of parameters in new_params is not guaranteed to be the
+    same as the number of parameters in params.  Use the correct count
+    when freeing new_params to avoid crashes.
+    
+    
+2014-03-25 Cole Robinson  <crobinso@redhat.com>
+    
+    setup.py: Allow running --help or clean without pkg-config
+    If pkg-config isn't installed, or a too old libvirt, we can't even
+    do 'python setup.py --help' without throwing an exception.
+    
+    Have the pkg-config checks and validation only throw an exception if
+    being called from the 'build' step.
+    
+    https://bugzilla.redhat.com/show_bug.cgi?id=1074170
+    
+    
+2014-03-25 Cole Robinson  <crobinso@redhat.com>
+    
+    setup.py: Make have_libvirt_lxc a function
+    This means we call it twice for a build operation, but I don't think
+    that's a big deal.
+    
+    
+2014-03-25 Cole Robinson  <crobinso@redhat.com>
+    
+    setup.py: Move module list building to its own function
+    Makes it a bit more clear what all that code is used for, rather than
+    intermixing it with function definitions.
+    
+    Besides the comment additions, this is a no-op and just reindents the
+    block, into a function.
+    
+    
+2014-03-25 Cole Robinson  <crobinso@redhat.com>
+    
+    setup.py: Remove unused import
+    
+    
+2014-03-25 Eric Blake  <eblake@redhat.com>
+    
+    qemu: support arbitrary monitor events
+    Wrap the new virConnectDomainQemuMonitorEventRegister function
+    added in libvirt 1.2.3.  This patch copies heavily from
+    network events (commit 6ea5be0) and from event loop callbacks
+    in libvirt-override.c, since in the libvirt_qemu module, we
+    must expose top-level functions rather than class members.
+    
+    * generator.py (qemu_skip_function): Don't generate event code.
+    (qemuBuildWrappers): Delay manual portion until after imports.
+    * libvirt-qemu-override.py (qemuMonitorEventRegister)
+    (qemuMonitorEventDeregister): New file.
+    * libvirt-qemu-override.c
+    (libvirt_qemu_virConnectDomainQemuMonitorEventFreeFunc)
+    (libvirt_qemu_virConnectDomainQemuMonitorEventCallback)
+    (libvirt_qemu_virConnectDomainQemuMonitorEventRegister)
+    (libvirt_qemu_virConnectDomainQemuMonitorEventDeregister)
+    (libvirt_qemu_lookupPythonFunc, getLibvirtQemuDictObject)
+    (getLibvirtQemuModuleObject): New functions.
+    
+    
+    
+2014-03-25 Eric Blake  <eblake@redhat.com>
+    
+    event: fix domain reference bugs
+    Noticed this bug while adding qemu monitor events; there's probably
+    lots of other misuse of libvirt_virDomainPtrWrap, but for now I'm
+    limiting the fix to all copied-and-pasted event callbacks, since
+    I'm about to copy it again in the next patch.  While at it, check
+    for failure to extract the "conn" key from the opaque callback
+    struct, and hoist that check to occur before we reach the point
+    where it is harder to undo on failure (the network code was the
+    only code that had it in the right place, but then it failed to
+    restore thread state on failure).
+    
+    The graphics callback is still not clean; but incremental
+    improvements are better than nothing.
+    
+    * libvirt-override.c (libvirt_virConnectDomainEventCallback)
+    (libvirt_virConnectDomainEvetnLifecycleCallback)
+    (libvirt_virConnectDomainEventGenericCallback)
+    (libvirt_virConnectDomainEventRTCChangeCallback)
+    (libvirt_virConnectDomainEventWatchdogCallback)
+    (libvirt_virConnectDomainEventIOErrorCallback)
+    (libvirt_virConnectDomainEventIOErrorReasonCallback)
+    (libvirt_virConnectDomainEventGraphicsCallback)
+    (libvirt_virConnectDomainEventBlockJobCallback)
+    (libvirt_virConnectDomainEventDiskChangeCallback)
+    (libvirt_virConnectDomainEventTrayChangeCallback)
+    (libvirt_virConnectDomainEventPMWakeupCallback)
+    (libvirt_virConnectDomainEventPMSuspendCallback)
+    (libvirt_virConnectDomainEventBalloonChangeCallback)
+    (libvirt_virConnectDomainEventPMSuspendDiskCallback)
+    (libvirt_virConnectDomainEventDeviceRemovedCallback): Don't pass
+    NULL to PyObject_CallMethod.
+    (libvirt_virConnectNetworkEventLifecycleCallback): Likewise, and
+    don't corrupt thread state.
+    
+    
+    
+2014-03-25 Martin Kletzander  <mkletzan@redhat.com>
+    
+    generator: Add virConnectDomainQemuMonitorEventCallback to skipped_types
+    
+    
+2014-03-24 Eric Blake  <eblake@redhat.com>
+    
+    maint: balance {} usage
+    Emacs gets lost when finding function boundaries when #ifdef
+    sections do not have balanced {}.
+    
+    * libvirt-override.c (libvirt_PyString_Check): New define.
+    (virPyDictToTypedParams): Avoid unbalanced {} across ifdef.
+    
+    
+    
+2014-03-24 Peter Krempa  <pkrempa@redhat.com>
+    
+    maint: Add ctags configuration file and ignore the output
+    Add the config file to ease creation of tags to help navigation in
+    editors.
+    
+    
+2014-03-24 Eric Blake  <eblake@redhat.com>
+    
+    maint: set up preferred emacs settings
+    Copy the relevant settings from libvirt.git, so that emacs users
+    maintain the style previously used before the two repos split.
+    
+    * .dir-locals.el: New file.
+    
+    
+    
+2014-03-21 Eric Blake  <eblake@redhat.com>
+    
+    maint: ignore .pyc files
+    * .gitignore: Add exemption.
+    
+    
+    
+2014-03-20 Cole Robinson  <crobinso@redhat.com>
+    
+    override: Return NULL on python failure in getCPUModelNames
+    Eric pointed this out on the last patch, but I pushed it before noticing
+    his message.
+    
+    
+2014-03-20 Cole Robinson  <crobinso@redhat.com>
+    
+    override: GetCPUModelNames should return None on failure
+    Right now, on failure, libvirt.py doesn't raise an exception and just
+    returns -1 to the user.
+    
+    
+2014-03-19 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add test for setting scheduler parameters
+    Add a test setting scheduler parameters to validate the
+    previous bugfix to strncpy of field names.
+    
+    
+    
+2014-03-19 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add support for running unit tests with nose
+    Make the 'python setup.py test' able to run unit tests
+    found under tests/ through the 'nosetests' command
+    
+    
+    
+2014-03-18 Michal Privoznik  <mprivozn@redhat.com>
+    
+    setPyVirTypedParameter: free whole return variable on error
+    The @ret value is built in a loop. However, if in one iteration
+    there's an error, we should free all the fields built so far. For
+    instance, if there's an error and the previous item was
+    type of VIR_TYPED_PARAM_STRING we definitely must free it.
+    
+    
+    
+2014-03-18 Michal Privoznik  <mprivozn@redhat.com>
+    
+    setPyVirTypedParameter: Copy full field name
+    In the setPyVirTypedParameter we try to produce virTypedParameter
+    array from a python dictionary. However, when copying field name into
+    item in returned array, we use strncpy() as the field name is fixed
+    length array. To determine its size we use sizeof() but mistakenly
+    dereference it resulting in sizeof(char) which equals to 1 byte.
+    Moreover, there's no need for using sizeof() when we have a global
+    macro to tell us the length of the field name:
+    VIR_TYPED_PARAM_FIELD_LENGTH.
+    
+    And since array is allocated using VIR_ALLOC() we are sure the memory
+    is initially filled with zeros. Hence, there's no need to terminate
+    string we've just copied into field name with '\0' character. It's
+    there for sure too as we copy up to field length - 1.
+    
+    
+    
+2014-03-03 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Post release version bump to 1.2.3
+    
+    
+2014-03-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 1.2.2
+    
+    
+2014-02-20 Martin Kletzander  <mkletzan@redhat.com>
+    
+    generator: Skip exporting only sentinels
+    When enum type has '_LAST' in its name, but is not the last type in
+    that enum, it's skipped even though it shouldn't be.  Currently, this
+    is the case for only VIR_NETWORK_UPDATE_COMMAND_ADD_LAST inside an
+    enum virNetworkUpdateCommand.
+    
+    Also, since _LAST types can have other enums instead of values, that
+    needs to be filtered out using a try-except when converting the value.
+    
+    
+    
+2014-02-13 Philipp Hahn  <hahn@univention.de>
+    
+    Fix stream related spelling mistakes
+    Consistent spelling of all-uppercase I/O.
+    
+    
+    
+2014-02-12 Eric Blake  <eblake@redhat.com>
+    
+    examples: demonstrate network events
+    Commit 6ea5be0 added network event callback support, so we might
+    as well demonstrate that it works by updating our example.
+    
+    * examples/event-test.py: Add network event, fix typos.
+    
+    
+    
+2014-02-04 Eric Blake  <eblake@redhat.com>
+    
+    maint: ignore editor files
+    * .gitignore: Exclude emacs cruft.
+    
+    
+    
+2014-02-03 Eric Blake  <eblake@redhat.com>
+    
+    Merge tag 'v1.2.1'
+    Release of libvirt-python-1.2.1
+    
+    
+2014-01-23 Robie Basak  <robie.basak@canonical.com>
+    
+    Fix calling of virStreamSend method
+    Change d40861 removed the 'len' argument from the virStreamSend
+    C level wrapper, but forgot to remove it from the python level
+    wrapper.
+    
+    Reported-by: Robie Basak <robie.basak@canonical.com>
+    
+    
 2014-01-16 Daniel Veillard  <veillard@redhat.com>
     
     Release of libvirt-python-1.2.1

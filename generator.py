@@ -227,10 +227,9 @@ def enum(type, name, value):
         value = 1
     elif value == 'VIR_DOMAIN_AFFECT_CONFIG':
         value = 2
-    if name[-5:] != '_LAST':
-        if onlyOverrides and name not in enums[type]:
-            return
-        enums[type][name] = value
+    if onlyOverrides and name not in enums[type]:
+        return
+    enums[type][name] = value
 
 def lxc_enum(type, name, value):
     if type not in lxc_enums:
@@ -274,6 +273,7 @@ skipped_types = {
      'virConnectDomainEventWatchdogCallback': "No function types in python",
      'virConnectDomainEventIOErrorCallback': "No function types in python",
      'virConnectDomainEventGraphicsCallback': "No function types in python",
+     'virConnectDomainQemuMonitorEventCallback': "No function types in python",
      'virStreamEventCallback': "No function types in python",
      'virEventHandleCallback': "No function types in python",
      'virEventTimeoutCallback': "No function types in python",
@@ -570,6 +570,8 @@ lxc_skip_function = (
 )
 qemu_skip_function = (
     #"virDomainQemuAttach",
+    'virConnectDomainQemuMonitorEventRegister', # overridden in -qemu.py
+    'virConnectDomainQemuMonitorEventDeregister', # overridden in -qemu.py
 )
 
 # Generate C code, but skip python impl
@@ -1765,13 +1767,23 @@ def buildWrappers(module):
     #
     # Generate enum constants
     #
+    def enumsSortKey(data):
+        value = data[1]
+        try:
+            value = int(value)
+        except ValueError:
+            value = float('inf')
+        return value
+
     enumvals = list(enums.items())
     if enumvals is not None:
         enumvals.sort(key=lambda x: x[0])
     for type,enum in enumvals:
         classes.write("# %s\n" % type)
         items = list(enum.items())
-        items.sort(key=lambda i: int(i[1]))
+        items.sort(key=enumsSortKey)
+        if items[-1][0].endswith('_LAST'):
+            del items[-1]
         for name,value in items:
             classes.write("%s = %s\n" % (name,value))
         classes.write("\n")
@@ -1803,16 +1815,8 @@ def qemuBuildWrappers(module):
     fd.write("#\n")
     fd.write("# WARNING WARNING WARNING WARNING\n")
     fd.write("#\n")
-    if extra is not None:
-        fd.writelines(extra.readlines())
-    fd.write("#\n")
-    fd.write("# WARNING WARNING WARNING WARNING\n")
-    fd.write("#\n")
     fd.write("# Automatically written part of python bindings for libvirt\n")
     fd.write("#\n")
-    fd.write("# WARNING WARNING WARNING WARNING\n")
-    if extra is not None:
-        extra.close()
 
     fd.write("try:\n")
     fd.write("    import libvirtmod_qemu\n")
@@ -1826,6 +1830,16 @@ def qemuBuildWrappers(module):
     fd.write("            raise lib_e\n\n")
 
     fd.write("import libvirt\n\n")
+    fd.write("# WARNING WARNING WARNING WARNING\n")
+    fd.write("#\n")
+    if extra is not None:
+        fd.writelines(extra.readlines())
+    fd.write("#\n")
+    if extra is not None:
+        extra.close()
+
+    fd.write("# WARNING WARNING WARNING WARNING\n")
+    fd.write("#\n")
     fd.write("#\n# Functions from module %s\n#\n\n" % module)
     #
     # Generate functions directly, no classes
