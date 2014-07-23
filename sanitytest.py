@@ -78,6 +78,9 @@ for cname in wantfunctions:
     if name[0:14] == "virTypedParams":
         continue
 
+    if name[0:23] == "virNetworkDHCPLeaseFree":
+        continue
+
     # These aren't functions, they're callback signatures
     if name in ["virConnectAuthCallbackPtr", "virConnectCloseFunc",
                 "virStreamSinkFunc", "virStreamSourceFunc", "virStreamEventCallback",
@@ -152,7 +155,7 @@ for name in sorted(basicklassmap):
     # and virDomainSnapshot namespaces which stupidly used a different
     # convention which we now can't fix without breaking API
     if func[0:3] == "Get" and klass not in ["virConnect", "virDomainSnapshot", "libvirt"]:
-        if func not in ["GetCPUStats"]:
+        if func not in ["GetCPUStats", "GetTime"]:
             func = func[3:]
 
     # The object creation and lookup APIs all have to get re-mapped
@@ -207,6 +210,11 @@ for name in sorted(basicklassmap):
     func = func[0:1].lower() + func[1:]
     if func[0:8] == "nWFilter":
         func = "nwfilter" + func[8:]
+    if func[0:8] == "fSFreeze" or func[0:6] == "fSThaw":
+        func = "fs" + func[2:]
+
+    if klass == "virNetwork":
+        func = func.replace("dHCP", "DHCP")
 
     # ...except when they don't. More stupid naming
     # decisions we can't fix

@@ -1,3 +1,166 @@
+2014-06-27 Nehal J Wani  <nehaljw.kkd1@gmail.com>
+    
+    Implement new virNetworkGetDHCPLeases API
+    This API returns a list of DHCP leases for all network interfaces
+    connected to the given virtual network or limited output just for one
+    interface if mac is specified.
+    
+    Example Output:
+    [{'iface': 'virbr3', 'ipaddr': '192.168.150.181', 'hostname': 'ubuntu14',
+    'expirytime': 1403737495L, 'prefix': 24, 'clientid': None,
+    'mac': '52:54:00:e8:73:eb', 'iaid': None, 'type': 0},
+    {'iface': 'virbr3', 'ipaddr': '2001:db8:ca2:2:1::bd', 'hostname': 'fedora20-test',
+    'expirytime': 1403738587L, 'prefix': 64, 'clientid': '00:04:b1:d8:86:42:e1:6a:aa:cf:d5:86:94:23:6f:94:04:cd',
+    'mac': '52:54:00:5b:40:98', 'iaid': '5980312', 'type': 1}]
+    
+    
+    
+2014-06-25 Eric Blake  <eblake@redhat.com>
+    
+    maint: document development against uninstalled libvirt
+    Thanks to Dan's recent work in libvirt.git, it is much easier to
+    develop against uninstalled libvirt.  Mention how.
+    
+    * README: More details.
+    
+    
+    
+2014-06-25 Nehal J Wani  <nehaljw.kkd1@gmail.com>
+    
+    build: use correct int conversion in NodeGetFreePages
+    Commit c8ba859bc7 introduced a compiler warning while un-wrapping
+    a python object to uint in libvirt_virNodeGetFreePages.
+    
+    On compiling libvirt-python against libvirt 1.2.6, we get:
+    
+    libvirt-override.c: In function ‘libvirt_virNodeGetFreePages’:
+    libvirt-override.c:7811:9: warning: pointer targets in passing argument 2 of ‘libvirt_intUnwrap’ differ in signedness [-Wpointer-sign]
+    if (libvirt_intUnwrap(tmp, &pages[i]) < 0)
+    ^
+    In file included from libvirt-override.c:24:0:
+    typewrappers.h:169:5: note: expected ‘int *’ but argument is of type ‘unsigned int *’
+    int libvirt_intUnwrap(PyObject *obj, int *val);
+    ^
+    
+    
+    
+2014-06-20 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Implement new virNodeGetFreePages API
+    The API expose information on host's free pages counts. For easier
+    access, in python this API returns a dictionary such as:
+    
+    In [4]: conn.getFreePages([2048,1*1024*1024], -1, 5)
+    Out[4]:
+    {-1: {2048: 114, 1048576: 4},
+    0: {2048: 3, 1048576: 1},
+    1: {2048: 100, 1048576: 1},
+    2: {2048: 10, 1048576: 1},
+    3: {2048: 1, 1048576: 1}}
+    
+    At the top level of the returned dictionary there's a pair of <NUMA
+    node> and another dictionary that contains detailed information on
+    each supported page size. The information then consists of fairs of
+    <page size> and <count of free pages>.
+    
+    
+    
+2014-06-19 Jason Andryuk  <andryuk@aero.org>
+    
+    Correct virDomainMigrateToURI3 definition
+    dconnuri is a string, so update the definition to match.  Without this,
+    the generated python would fail when passed a string.
+    
+    
+2014-06-18 Eric Blake  <eblake@redhat.com>
+    
+    build: provide wrapper makefile
+    After years of finger training, I'm so used to 'make check' just
+    working, that I lose quite a bit of time re-learning that in this
+    project, it is spelled 'python setup.py build check'.  A shim
+    makefile bridges the gap.
+    
+    * Makefile: New file.
+    
+    
+    
+2014-06-18 Eric Blake  <eblake@redhat.com>
+    
+    event-test: add missing events
+    Update the example to be able to trace all events.
+    
+    * examples/event-test.py (main): Match full list of domain events.
+    (myDomainEventIOErrorReasonCallback)
+    (myDomainEventControlErrorCallback)
+    (myDomainEventBlockJobCallback, myDomainEventBlockJob2Callback)
+    (blockJobTypeToString, blockJobStatusToString): New functions.
+    
+    
+    
+2014-06-18 Eric Blake  <eblake@redhat.com>
+    
+    blockjob: support new BLOCK_JOB_2 event
+    Libvirt 1.2.6 is introducing a new block job event that passes disk
+    information by target device rather than host file name.  At the
+    python level, we are just a passthrough, so we can reuse all the
+    existing code and just wire up the new enum value.
+    
+    * libvirt-override-virConnect.py
+    (_dispatchDomainEventBlockPullCallback): Rename...
+    (_dispatchDomainEventBlockJobCallback): ...to this, and make
+    generic to both events.
+    * libvirt-override.c
+    (libvirt_virConnectDomainEventBlockJobCallback): Match naming.
+    (libvirt_virConnectDomainEventRegisterAny): Allow new registration.
+    
+    
+    
+2014-06-02 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Bump version to 1.2.6 for new dev cycle
+    
+    
+2014-05-27 Martin Kletzander  <mkletzan@redhat.com>
+    
+    fix leak in memoryStats with older python
+    libvirt_virDomainMemoryStats() function creates a dictionary without
+    any checks whether the additions were successful, whether the python
+    objects were created and, most importantly, without decrementing the
+    reference count on the objects added to the dictionary.  This is
+    somehow not an issue with current upstream versions, however with
+    python 2.6 this exposes a leak in our bindings.  The following patch
+    works on both old and new CPython versions and is already used in
+    other parts of the code, so it's also most straightforward.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1099860
+    
+    
+    
+2014-05-20 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Implement virDomain{Get,Set}Time APIs
+    While the setter can be generated automatically, the getter is not.
+    However, it would be a lot easier if they both share the same logic:
+    a python dictionary to represent the time: dict['seconds'] to
+    represent seconds, and dict['nseconds'] to represent nanoseconds.
+    
+    
+    
+2014-05-16 Tomoki Sekiyama  <tomoki.sekiyama@hds.com>
+    
+    override: add virDomainFSFreeze and virDomainFSThaw API
+    Add binding for the new virDomainFSFreeze and virDomainFSThaw functions
+    added in libvirt 1.2.5. These require override since these take a list
+    of mountpoints path string. The methods are named 'fsFreeze' and
+    'fsThaw'.
+    
+    
+    
+2014-05-05 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Bump version to 1.2.5 for new dev cycle
+    
+    
 2014-04-07 Laine Stump  <laine@laine.org>
     
     build: add BuildRequires for python-lxml and python3-lxml
