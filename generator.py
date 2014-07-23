@@ -462,6 +462,8 @@ skip_impl = (
     'virDomainMigrate3',
     'virDomainMigrateToURI3',
     'virConnectGetCPUModelNames',
+    'virNodeGetFreePages',
+    'virNetworkGetDHCPLeases',
 )
 
 lxc_skip_impl = (
@@ -517,6 +519,11 @@ skip_function = (
     'virDomainCreateXMLWithFiles', # overridden in virConnect.py
     'virDomainCreateWithFiles', # overridden in virDomain.py
 
+    'virDomainFSFreeze', # overridden in virDomain.py
+    'virDomainFSThaw', # overridden in virDomain.py
+    'virDomainGetTime', # overridden in virDomain.py
+    'virDomainSetTime', # overridden in virDomain.py
+
     # 'Ref' functions have no use for bindings users.
     "virConnectRef",
     "virDomainRef",
@@ -562,6 +569,8 @@ skip_function = (
     "virTypedParamsGetString",
     "virTypedParamsGetUInt",
     "virTypedParamsGetULLong",
+
+    'virNetworkDHCPLeaseFree', # only useful in C, python code uses list
 )
 
 lxc_skip_function = (
@@ -1109,6 +1118,7 @@ def nameFixup(name, classe, type, file):
     elif name[0:13] == "virNetworkGet":
         func = name[13:]
         func = func[0:1].lower() + func[1:]
+        func = func.replace("dHCP", "DHCP")
     elif name[0:10] == "virNetwork":
         func = name[10:]
         func = func[0:1].lower() + func[1:]
