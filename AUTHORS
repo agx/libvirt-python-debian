@@ -350,6 +350,8 @@ The individual contributors are
    Eric Blake <eblake@redhat.com>
    Eric Blake <eblake@redhat.com>
    Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
+   Eric Blake <eblake@redhat.com>
    Federico Simoncelli <fsimonce@redhat.com>
    Giuseppe Scrivano <gscrivan@redhat.com>
    Giuseppe Scrivano <gscrivan@redhat.com>
@@ -427,6 +429,7 @@ The individual contributors are
    Jiri Denemark <jdenemar@redhat.com>
    Jiri Denemark <jdenemar@redhat.com>
    Jiri Denemark <jdenemar@redhat.com>
+   Jiri Denemark <Jiri.Denemark@gmail.com>
    Ján Tomko <jtomko@redhat.com>
    KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
    Lai Jiangshan <laijs@cn.fujitsu.com>
@@ -440,6 +443,7 @@ The individual contributors are
    Mark McLoughlin <markmc@redhat.com>
    Mark McLoughlin <markmc@redhat.com>
    Mark McLoughlin <markmc@redhat.com>
+   Martin Kletzander <mkletzan@redhat.com>
    Martin Kletzander <mkletzan@redhat.com>
    Martin Kletzander <mkletzan@redhat.com>
    Martin Kletzander <mkletzan@redhat.com>
@@ -475,6 +479,7 @@ The individual contributors are
    Miloslav Trmač <mitr@redhat.com>
    Minoru Usui <usui@mxm.nes.nec.co.jp>
    Minoru Usui <usui@mxm.nes.nec.co.jp>
+   Mo Yuxiang <Moyuxiang@huawei.com>
    Nehal J Wani <nehaljw.kkd1@gmail.com>
    Nehal J Wani <nehaljw.kkd1@gmail.com>
    Nikunj A. Dadhania <nikunj@linux.vnet.ibm.com>
@@ -508,6 +513,11 @@ The individual contributors are
    Osier Yang <jyang@redhat.com>
    Osier Yang <jyang@redhat.com>
    Oskari Saarenmaa <os@ohmu.fi>
+   Pavel Hrdina <phrdina@redhat.com>
+   Pavel Hrdina <phrdina@redhat.com>
+   Pavel Hrdina <phrdina@redhat.com>
+   Peter Krempa <pkrempa@redhat.com>
+   Peter Krempa <pkrempa@redhat.com>
    Peter Krempa <pkrempa@redhat.com>
    Peter Krempa <pkrempa@redhat.com>
    Peter Krempa <pkrempa@redhat.com>
@@ -547,3 +557,4 @@ The individual contributors are
    Viktor Mihajlovski <mihajlov@linux.vnet.ibm.com>
    Viktor Mihajlovski <mihajlov@linux.vnet.ibm.com>
    Zeeshan Ali (Khattak) <zeeshanak@gnome.org>
+   Zhou Yimin <zhouyimin@huawei.com>
