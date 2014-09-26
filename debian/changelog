@@ -1,3 +1,10 @@
+libvirt-python (1.2.8-1) unstable; urgency=medium
+
+  * [e081979] New upstream version 1.2.8
+  * [ad88fbf] Require libvirt 1.2.8 for the new bindings
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 26 Sep 2014 19:19:57 +0200
+
 libvirt-python (1.2.6-2) unstable; urgency=medium
 
   * Upload to unstable
