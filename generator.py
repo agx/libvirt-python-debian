@@ -464,6 +464,7 @@ skip_impl = (
     'virConnectGetCPUModelNames',
     'virNodeGetFreePages',
     'virNetworkGetDHCPLeases',
+    'virDomainBlockCopy',
 )
 
 lxc_skip_impl = (
@@ -507,6 +508,8 @@ skip_function = (
     'virConnectListAllNodeDevices', # overridden in virConnect.py
     'virConnectListAllNWFilters', # overridden in virConnect.py
     'virConnectListAllSecrets', # overridden in virConnect.py
+    'virConnectGetAllDomainStats', # overridden in virConnect.py
+    'virDomainListGetStats', # overriden in virConnect.py
 
     'virStreamRecvAll', # Pure python libvirt-override-virStream.py
     'virStreamSendAll', # Pure python libvirt-override-virStream.py
@@ -571,6 +574,7 @@ skip_function = (
     "virTypedParamsGetULLong",
 
     'virNetworkDHCPLeaseFree', # only useful in C, python code uses list
+    'virDomainStatsRecordListFree', # only useful in C, python uses dict
 )
 
 lxc_skip_function = (
@@ -1785,12 +1789,26 @@ def buildWrappers(module):
             value = float('inf')
         return value
 
+    # Resolve only one level of reference
+    def resolveEnum(enum, data):
+        for name,val in enum.items():
+            try:
+                int(val)
+            except ValueError:
+                enum[name] = data[val]
+        return enum
+
     enumvals = list(enums.items())
+    # convert list of dicts to one dict
+    enumData = {}
+    for type,enum in enumvals:
+        enumData.update(enum)
+
     if enumvals is not None:
         enumvals.sort(key=lambda x: x[0])
     for type,enum in enumvals:
         classes.write("# %s\n" % type)
-        items = list(enum.items())
+        items = list(resolveEnum(enum, enumData).items())
         items.sort(key=enumsSortKey)
         if items[-1][0].endswith('_LAST'):
             del items[-1]

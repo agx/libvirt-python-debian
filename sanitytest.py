@@ -81,6 +81,12 @@ for cname in wantfunctions:
     if name[0:23] == "virNetworkDHCPLeaseFree":
         continue
 
+    if name[0:28] == "virDomainStatsRecordListFree":
+        continue
+
+    if name[0:21] == "virDomainListGetStats":
+        name = "virConnectDomainListGetStats"
+
     # These aren't functions, they're callback signatures
     if name in ["virConnectAuthCallbackPtr", "virConnectCloseFunc",
                 "virStreamSinkFunc", "virStreamSourceFunc", "virStreamEventCallback",

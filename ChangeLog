@@ -1,3 +1,106 @@
+2014-09-01 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Implement API bindings for virDomainBlockCopy
+    
+    
+2014-09-01 Pavel Hrdina  <phrdina@redhat.com>
+    
+    API: Implement bindings for virDomainListGetStats
+    Implement the function by returning a list of tuples instead the array
+    of virDomainStatsRecords and store the typed parameters as dict.
+    
+    
+    
+2014-09-01 Peter Krempa  <pkrempa@redhat.com>
+    
+    API: Implement bindings for virConnectGetAllDomainStats
+    Implement the function by returning a list of tuples instead the array
+    of virDomainStatsRecords and store the typed parameters as dict.
+    
+    
+    
+2014-09-01 Peter Krempa  <pkrempa@redhat.com>
+    
+    API: Skip 'virDomainStatsRecordListFree'
+    The new API function doesn't make sense to be exported in python. The
+    bindings will return native types instead of the struct array.
+    
+    
+    
+2014-09-01 Pavel Hrdina  <phrdina@redhat.com>
+    
+    generator: resolve one level of enum reference
+    In the libvirt.h we have one enum defined by references from another
+    enum and it leads in wrong order of definitons in python code. To
+    prevent this we should resolve that references before we generate the
+    python code.
+    
+    For now we have only one level of references so we will count with that
+    in the generator but we should update it in the future to be more
+    flexible.
+    
+    
+    
+2014-08-19 Mo Yuxiang  <Moyuxiang@huawei.com>
+    
+    build: Fix build warning on libvirt-python
+    On compiling libvirt-python, we get such a warning:
+    
+    libvirt-qemu-override.c: In function ‘libvirt_qemu_virConnectDomainQemuMonitorEventRegister’:
+    libvirt-qemu-override.c:304: warning: suggest explicit braces to avoid ambiguous ‘else’
+    
+    Py_DECREF is a macro using if/else on older Python releases.
+    The solution is to add braces.
+    Python 2.7 and newer has the macro wrapped in a do { } while(0) block.
+    
+    
+    
+2014-08-11 Zhou Yimin  <zhouyimin@huawei.com>
+    
+    Fix libvirt_longlongWrap returning a very large value
+    If hypervisor is not Xen, the errs in struct _virDomainBlockStats will be -1.
+    But in KVM when we call domain.blockStats(), errs is 18446744073709551615.
+    
+    To fix that, this patch has two changes:
+    1. Replace use of the PyLong_FromUnsignedLongLong with PyLong_FromLongLong
+    in function libvirt_longlongWrap
+    2. If the paramemter of libvirt_longlongWrap is unsigned long long,
+    use libvirt_ulonglongWrap instead because of above change.
+    
+    After this patch, errs is -1 which is consistent with virDomainBlockStats api.
+    
+    
+    
+2014-08-04 Eric Blake  <eblake@redhat.com>
+    
+    maint: document use of libvirt's run script
+    Ever since libvirt commit 78c09530, it's easier to just use the
+    run script.
+    
+    * README: Mention run script.
+    
+    
+    
+2014-08-04 Eric Blake  <eblake@redhat.com>
+    
+    Bump version to 1.2.8 for new dev cycle
+    
+    
+2014-07-29 Jiri Denemark  <Jiri.Denemark@gmail.com>
+    
+    spec: Reorganize to satisfy buggy spectool
+    spectool parses a specfile and strips everything but a preamble.
+    However, if the first section is preceded by %if clause, it keeps it
+    there which then makes rpmbuild complain about unmatched %if. Let's make
+    the buggy tool happy by moving sections around so that the first one is
+    not in any conditional.
+    
+    
+2014-07-22 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Bump version to 1.2.7 for new dev cycle
+    
+    
 2014-06-27 Nehal J Wani  <nehaljw.kkd1@gmail.com>
     
     Implement new virNetworkGetDHCPLeases API
