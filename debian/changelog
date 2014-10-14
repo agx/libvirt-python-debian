@@ -1,3 +1,10 @@
+libvirt-python (1.2.9-1) unstable; urgency=medium
+
+  * [e36b886] New upstream version 1.2.9 (Closes: #765159, #765108)
+  * [ac669e2] Build depend on libvirt 1.2.9 for the new bindings
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 14 Oct 2014 14:22:53 +0200
+
 libvirt-python (1.2.8-1) unstable; urgency=medium
 
   * [e081979] New upstream version 1.2.8
