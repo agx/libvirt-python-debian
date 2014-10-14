@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 9.0.0),
  pkg-config,
  python-all-dev (>= 2.6.6-3~),
  python3-all-dev,
- libvirt-dev (>= 1.2.8~),
+ libvirt-dev (>= 1.2.9~),
 Standards-Version: 3.9.4
 Vcs-Git: git://git.debian.org/git/pkg-libvirt/libvirt-python.git -b debian/sid
 Vcs-Browser: http://git.debian.org/?p=pkg-libvirt/libvirt-python.git
