@@ -6506,6 +6506,65 @@ libvirt_virConnectDomainEventDeviceRemovedCallback(virConnectPtr conn ATTRIBUTE_
 }
 #endif /* LIBVIR_CHECK_VERSION(1, 1, 1) */
 
+#if LIBVIR_CHECK_VERSION(1, 2, 9)
+static int
+libvirt_virConnectDomainEventTunableCallback(virConnectPtr conn ATTRIBUTE_UNUSED,
+                                             virDomainPtr dom,
+                                             virTypedParameterPtr params,
+                                             int nparams,
+                                             void *opaque)
+{
+    PyObject *pyobj_cbData = (PyObject*)opaque;
+    PyObject *pyobj_dom;
+    PyObject *pyobj_ret = NULL;
+    PyObject *pyobj_conn;
+    PyObject *dictKey;
+    PyObject *pyobj_dict = NULL;
+    int ret = -1;
+
+    LIBVIRT_ENSURE_THREAD_STATE;
+
+    pyobj_dict = getPyVirTypedParameter(params, nparams);
+    if (!pyobj_dict)
+        goto cleanup;
+
+    if (!(dictKey = libvirt_constcharPtrWrap("conn")))
+        goto cleanup;
+    pyobj_conn = PyDict_GetItem(pyobj_cbData, dictKey);
+    Py_DECREF(dictKey);
+
+    /* Create a python instance of this virDomainPtr */
+    virDomainRef(dom);
+    if (!(pyobj_dom = libvirt_virDomainPtrWrap(dom))) {
+        virDomainFree(dom);
+        goto cleanup;
+    }
+    Py_INCREF(pyobj_cbData);
+
+    /* Call the Callback Dispatcher */
+    pyobj_ret = PyObject_CallMethod(pyobj_conn,
+                                    (char*)"_dispatchDomainEventTunableCallback",
+                                    (char*)"OOO",
+                                    pyobj_dom, pyobj_dict, pyobj_cbData);
+
+    Py_DECREF(pyobj_cbData);
+    Py_DECREF(pyobj_dom);
+
+ cleanup:
+    if (!pyobj_ret) {
+        DEBUG("%s - ret:%p\n", __FUNCTION__, pyobj_ret);
+        PyErr_Print();
+        Py_XDECREF(pyobj_dict);
+    } else {
+        Py_DECREF(pyobj_ret);
+        ret = 0;
+    }
+
+    LIBVIRT_RELEASE_THREAD_STATE;
+    return ret;
+
+}
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 9) */
 
 static PyObject *
 libvirt_virConnectDomainEventRegisterAny(ATTRIBUTE_UNUSED PyObject *self,
@@ -6594,6 +6653,11 @@ libvirt_virConnectDomainEventRegisterAny(ATTRIBUTE_UNUSED PyObject *self,
         cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventDeviceRemovedCallback);
         break;
 #endif /* LIBVIR_CHECK_VERSION(1, 1, 1) */
+#if LIBVIR_CHECK_VERSION(1, 2, 9)
+    case VIR_DOMAIN_EVENT_ID_TUNABLE:
+        cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventTunableCallback);
+        break;
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 9) */
     case VIR_DOMAIN_EVENT_ID_LAST:
         break;
     }
@@ -7963,8 +8027,8 @@ convertDomainStatsRecord(virDomainStatsRecordPtr *records,
 {
     PyObject *py_retval;
     PyObject *py_record;
-    PyObject *py_record_domain;
-    PyObject *py_record_stats;
+    PyObject *py_record_domain = NULL;
+    PyObject *py_record_stats = NULL;
     size_t i;
 
     if (!(py_retval = PyList_New(nrecords)))
@@ -8039,7 +8103,6 @@ libvirt_virConnectGetAllDomainStats(PyObject *self ATTRIBUTE_UNUSED,
     if (!(py_retval = convertDomainStatsRecord(records, nrecords)))
         py_retval = VIR_PY_NONE;
 
- cleanup:
     virDomainStatsRecordListFree(records);
 
     return py_retval;
@@ -8053,7 +8116,6 @@ libvirt_virDomainListGetStats(PyObject *self ATTRIBUTE_UNUSED,
     PyObject *pyobj_conn;
     PyObject *py_retval;
     PyObject *py_domlist;
-    virConnectPtr conn;
     virDomainStatsRecordPtr *records = NULL;
     virDomainPtr *doms = NULL;
     int nrecords;
@@ -8065,7 +8127,6 @@ libvirt_virDomainListGetStats(PyObject *self ATTRIBUTE_UNUSED,
     if (!PyArg_ParseTuple(args, (char *)"OOii:virDomainListGetStats",
                           &pyobj_conn, &py_domlist, &stats, &flags))
         return NULL;
-    conn = (virConnectPtr) PyvirConnect_Get(pyobj_conn);
 
     if (PyList_Check(py_domlist)) {
         ndoms = PyList_Size(py_domlist);
@@ -8130,6 +8191,70 @@ libvirt_virDomainBlockCopy(PyObject *self ATTRIBUTE_UNUSED, PyObject *args)
     return libvirt_intWrap(c_retval);
 }
 
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 8) */
+
+#if LIBVIR_CHECK_VERSION(1, 2, 9)
+static PyObject *
+libvirt_virNodeAllocPages(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    PyObject *pyobj_conn;
+    PyObject *pyobj_pages;
+    Py_ssize_t size = 0;
+    Py_ssize_t pos = 0;
+    PyObject *key, *value;
+    virConnectPtr conn;
+    unsigned int npages = 0;
+    unsigned int *pageSizes = NULL;
+    unsigned long long *pageCounts = NULL;
+    int startCell = -1;
+    unsigned int cellCount = 1;
+    unsigned int flags = VIR_NODE_ALLOC_PAGES_ADD;
+    int c_retval;
+
+    if (!PyArg_ParseTuple(args, (char *)"OOiii:virConnectGetAllDomainStats",
+                          &pyobj_conn, &pyobj_pages,
+                          &startCell, &cellCount, &flags))
+        return NULL;
+    conn = (virConnectPtr) PyvirConnect_Get(pyobj_conn);
+
+    if ((size = PyDict_Size(pyobj_pages)) < 0)
+        return NULL;
+
+    if (size == 0) {
+        PyErr_Format(PyExc_LookupError,
+                     "Need non-empty dictionary to pages attribute");
+        return NULL;
+    }
+
+    if (VIR_ALLOC_N(pageSizes, size) < 0 ||
+        VIR_ALLOC_N(pageCounts, size) < 0) {
+        PyErr_NoMemory();
+        goto error;
+    }
+
+    while (PyDict_Next(pyobj_pages, &pos, &key, &value)) {
+        if (libvirt_uintUnwrap(key, &pageSizes[npages]) < 0 ||
+            libvirt_ulonglongUnwrap(value, &pageCounts[npages]) < 0)
+            goto error;
+        npages++;
+    }
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virNodeAllocPages(conn, npages, pageSizes,
+                                 pageCounts, startCell, cellCount, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    VIR_FREE(pageSizes);
+    VIR_FREE(pageCounts);
+
+    return libvirt_intWrap(c_retval);
+
+ error:
+    VIR_FREE(pageSizes);
+    VIR_FREE(pageCounts);
+    return NULL;
+}
 #endif /* LIBVIR_CHECK_VERSION(1, 2, 8) */
 
 /************************************************************************
@@ -8322,6 +8447,9 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virDomainListGetStats", libvirt_virDomainListGetStats, METH_VARARGS, NULL},
     {(char *) "virDomainBlockCopy", libvirt_virDomainBlockCopy, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(1, 2, 8) */
+#if LIBVIR_CHECK_VERSION(1, 2, 9)
+    {(char *) "virNodeAllocPages", libvirt_virNodeAllocPages, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 9) */
     {NULL, NULL, 0, NULL}
 };
 

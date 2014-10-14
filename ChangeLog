@@ -1,3 +1,83 @@
+2014-09-30 Pavel Hrdina  <phrdina@redhat.com>
+    
+    implement new tunable event
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1147639
+    
+    
+    
+2014-09-26 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Implement new virNodeAllocPages API
+    
+    
+2014-09-12 Michal Privoznik  <mprivozn@redhat.com>
+    
+    generator: Free strings after libvirt_charPtrWrap
+    https://bugzilla.redhat.com/show_bug.cgi?id=1140998
+    
+    Up till bb3301ba the wrapper was freeing the passed strings for us.
+    However that changed after the commit. So now we don't free any
+    strings which results in memory leaks as reported upstream [1]:
+    
+    ==14265== 2,407 bytes in 1 blocks are definitely lost in loss record 1,457 of 1,550
+    ==14265==    at 0x4C2845D: malloc (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+    ==14265==    by 0x5C46624: xdr_string (in /usr/lib64/libc-2.17.so)
+    ==14265==    by 0xCFD9FCD: xdr_remote_nonnull_string (remote_protocol.c:31)
+    ==14265==    by 0xCFDC2C8: xdr_remote_domain_get_xml_desc_ret (remote_protocol.c:1617)
+    ==14265==    by 0xCFF0811: virNetMessageDecodePayload (virnetmessage.c:407)
+    ==14265==    by 0xCFE68FB: virNetClientProgramCall (virnetclientprogram.c:379)
+    ==14265==    by 0xCFBE8B1: callFull.isra.2 (remote_driver.c:6578)
+    ==14265==    by 0xCFC7F04: remoteDomainGetXMLDesc (remote_driver.c:6600)
+    ==14265==    by 0xCF8167C: virDomainGetXMLDesc (libvirt.c:4380)
+    ==14265==    by 0xCC2C4DF: libvirt_virDomainGetXMLDesc (libvirt.c:1141)
+    ==14265==    by 0x4F12B93: PyEval_EvalFrameEx (in /usr/lib64/libpython2.7.so.1.0)
+    ==14265==    by 0x4F141AC: PyEval_EvalCodeEx (in /usr/lib64/libpython2.7.so.1.0)
+    
+    The python documentation clearly advise us to call free() [2]. From
+    an example in their docs:
+    
+    PyObject *res;
+    char *buf = (char *) malloc(BUFSIZ); /* for I/O */
+    
+    if (buf == NULL)
+    return PyErr_NoMemory();
+    ...Do some I/O operation involving buf...
+    res = PyString_FromString(buf);
+    free(buf); /* malloc'ed */
+    return res;
+    
+    Moreover, instead of using VIR_FREE() (which we are not exporting),
+    I'll just go with bare free().
+    
+    1: https://www.redhat.com/archives/libvir-list/2014-September/msg00736.html
+    2: https://docs.python.org/2/c-api/memory.html
+    
+    
+    
+2014-09-02 Peter Krempa  <pkrempa@redhat.com>
+    
+    override: Fix two uninitialized variables in convertDomainStatsRecord
+    py_record_domain and py_record_stats would be accessed uninitialized if
+    an out-of-memory condition would happen in the first loop. Unlikely, but
+    coverity complained.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1136354
+    
+    
+2014-09-02 Pavel Hrdina  <phrdina@redhat.com>
+    
+    libvirt-override: fix some build warnings
+    Remove unused label 'cleanup' in 'libvirt_virConnectGetAllDomainStats'
+    function and remove unused variable 'conn' in function
+    'libvirt_virDomainListGetStats'.
+    
+    
+    
+2014-09-02 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Post-release version bump for new dev cycle
+    
+    
 2014-09-01 Pavel Hrdina  <phrdina@redhat.com>
     
     Implement API bindings for virDomainBlockCopy
