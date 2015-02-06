@@ -1,3 +1,248 @@
+2015-01-19 Pavel Hrdina  <phrdina@redhat.com>
+    
+    sanitytest: fix mapping test for virDomainDefineXMLFlags
+    The libvirt API has in the name "virDomain" but it's correctly mapped
+    into "virConnect" class. Create an exception in the sanity test.
+    
+    
+    
+2015-01-15 Eric Blake  <eblake@redhat.com>
+    
+    build: make it easier to backport event ids
+    In some cases, it is very easy for downstream distros to backport
+    enum values without requiring a .so bump.  Keying the conditional
+    code off of the upstream version where the enum value was added
+    is not ideal, because downstream then has to patch that the feature
+    is available in their build that still reports an earlier version
+    number.  For example, if RHEL 7 backports events from 1.2.11 into
+    a build based on 1.2.8, building the python bindings would warn:
+    
+    libvirt-override.c: In function ‘libvirt_virConnectDomainEventRegisterAny’:
+    libvirt-override.c:6653:5: warning: enumeration value ‘VIR_DOMAIN_EVENT_ID_TUNABLE’ not handled in switch [-Wswitch]
+    switch ((virDomainEventID) eventID) {
+    ^
+    libvirt-override.c:6653:5: warning: enumeration value ‘VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE’ not handled in switch [-Wswitch]
+    
+    The solution is simple - use feature-based probes instead of
+    version probes.  Since we already scrape the XML API document of
+    whatever libvirt build we are binding, and that XML already
+    documents any downstream enum additions, we can use those as the
+    features for gating conditional compilation.
+    
+    * generator.py (enum): Track event id names.
+    (buildStubs): Output define wrappers for events.
+    * libvirt-override.c
+    (libvirt_virConnectDomainEventBalloonChangeCallback)
+    (libvirt_virConnectDomainEventPMSuspendDiskCallback)
+    (libvirt_virConnectDomainEventDeviceRemovedCallback)
+    (libvirt_virConnectDomainEventTunableCallback)
+    (libvirt_virConnectDomainEventAgentLifecycleCallback)
+    (libvirt_virConnectDomainEventRegisterAny): Use them.
+    
+    
+    
+2014-12-16 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Bump version to 1.2.12 for new dev cycle
+    
+    
+2014-12-11 Richard W.M. Jones  <rjones@redhat.com>
+    
+    Add c_pointer method to classes.
+    This returns the raw C pointer to the underlying object, eg:
+    
+    conn = libvirt.open(None)
+    print "0x%x" % conn.c_pointer()   # returns virConnectPtr of the connection
+    dom = conn.lookupByName("test")
+    print "0x%x" % dom.c_pointer()    # returns virDomainPtr of the domain
+    
+    The reason behind this is to allow us to transparently pass Python dom
+    objects through the libguestfs Python API.
+    
+    https://bugzilla.redhat.com/show_bug.cgi?id=1075164
+    
+    
+2014-12-02 Tomoki Sekiyama  <tomoki.sekiyama@hds.com>
+    
+    override: iterate virDomainFSInfo.devAliases using ndevAliases
+    Currently devAliases in virDomainFSInfo struct are iterated as a
+    NULL-terminated list, but that is not guaranteed. It should use
+    ndevAliases which stores the number of the items in devAliases.
+    
+    
+    
+2014-12-01 Pavel Hrdina  <phrdina@redhat.com>
+    
+    fix examples
+    The dhcpleases example had an old usage of print function. The formating
+    of leases record was also wrong.
+    
+    The event-test example had an old usage of exceptions.
+    
+    It's mainly to make examples compatible with python3.
+    
+    
+    
+2014-11-24 Peter Krempa  <pkrempa@redhat.com>
+    
+    event: Add bindings for agent lifecycle event
+    Also add the example.
+    
+    
+2014-11-24 Tomoki Sekiyama  <tomoki.sekiyama@hds.com>
+    
+    override: Implement bindings for virDomainGetFSInfo as domain.fsInfo
+    Implement the function which returns a list of tuples, that contains members
+    of virDomainFSInfo struct.
+    
+    
+    
+2014-11-11 Luyao Huang  <lhuang@redhat.com>
+    
+    Add dict check for setTime and allow pass 'seconds' parameter
+    When pass None or a empty dictionary to time, it will report
+    error. This commit allows a one-element dictionary which contains
+    just 'seconds' field, which results in the same as passing 0 for
+    'nseconds' field. Moreover, dict is checked for unknown fields.
+    
+    
+    
+2014-11-06 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Check return value of libvirt_uintUnwrap
+    libvirt_virDomainSendKey didn't check whether libvirt_uintUnwrap
+    succeeded or not.
+    
+    https://bugzilla.redhat.com/show_bug.cgi?id=1161039
+    
+    
+2014-11-03 John Ferlan  <jferlan@redhat.com>
+    
+    Bump version to 1.2.11 for new dev cycle
+    
+    
+2014-10-28 Dmitry Guryanov  <dguryanov@parallels.com>
+    
+    fix libvirt headers list
+    Since libvirt.h has been split out, generator.py
+    should be fixed accordingly. So add full list of header
+    files.
+    
+    
+    
+2014-10-22 Pavel Hrdina  <phrdina@redhat.com>
+    
+    virDomainBlockCopy: initialize flags to 0
+    An optional argument if not passed isn't modified by the
+    PyArg_ParseTuple function.
+    
+    
+    
+2014-10-22 Pavel Hrdina  <phrdina@redhat.com>
+    
+    flags cannot get right value for blockCopy function
+    When use blockCopy, flags cannot get a right value, because
+    PyArg_ParseTuple want to get 6 parameters and blockCopy only
+    pass 5. Flags will get a unpredictable value, this will make
+    the function fail with error:
+    
+    unsupported flags (0x7f6c) in function qemuDomainBlockCopy
+    
+    
+    
+2014-10-22 Peter Krempa  <pkrempa@redhat.com>
+    
+    Fix rest of unsigned integer handling
+    As in the previous patch, fix all places where 'flags' is converted as a
+    signed argument to unsigned including the python code generator.
+    
+    
+2014-10-22 Luyao Huang  <lhuang@redhat.com>
+    
+    Fix parsing of 'flags' argument for bulk stats functions
+    When 'flags' is set to
+    'libvirt.VIR_CONNECT_GET_ALL_DOMAINS_STATS_ENFORCE_STATS,
+    python will report a  error:
+    
+    OverflowError: signed integer is greater than maximum
+    
+    as VIR_CONNECT_GET_ALL_DOMAINS_STATS_ENFORCE_STATS is defined as 1<<31.
+    This happens as PyArg_ParseTuple's formatting string containing 'i' as a
+    modifier expects a signed integer.
+    
+    With python >= 2.3, 'I' means unsigned int and 'i' means int so we
+    should use 'I' in the formatting string.
+    
+    See: https://docs.python.org/2/c-api/arg.html
+    
+    
+    
+2014-10-22 Peter Krempa  <pkrempa@redhat.com>
+    
+    Fix function name when parsing arguments in libvirt_virNodeAllocPages
+    The override function was copied&pasted from virConnectGetAllDomainStats
+    and the function name after the colon was not changed. Fix the issue as
+    an invalid name would appear in the error message.
+    
+    
+2014-10-20 Luyao Huang  <lhuang@redhat.com>
+    
+    Improve error output when use getTime with a nonzero flags.
+    When give a nonzero flags to getTime, c_retval will get -1 and goto
+    cleanup. But py_retval still is NULL, so set py_retval =  VIR_PY_NONE.
+    This will make the output message more correct.
+    
+    
+    
+2014-10-16 Pradipta Kr. Banerjee  <pradipta.banerjee@gmail.com>
+    
+    Change the comment in getPyNodeCPUCount method reflecting correct called methods
+    Comment mentions virGetNodeCPUMap whereas the actual method is
+    virNodeGetCPUMap. Similarly comment mentions virGetNodeInfo whereas the actual
+    method is virNodeGetInfo
+    
+    
+    
+2014-10-07 Pavel Hrdina  <phrdina@redhat.com>
+    
+    setup.py: fix rpm build to return 1 on error
+    
+    
+2014-10-07 Martin Kletzander  <mkletzan@redhat.com>
+    
+    sanitytest: define long for python version >= 3
+    Commit c58c7f362aab37e4961407c2efc8a74925ed9c37 fixed 32-bit python
+    build but broke build with python3 due to the lack of 'long' in the
+    newer version of python.  This patch aims to fix it with a simple
+    string comparison of sys.version and '3'.
+    
+    
+    
+2014-10-07 Martin Kletzander  <mkletzan@redhat.com>
+    
+    sanitytest: count with the fact that large enums can be long
+    On 32-bit systems, one new flag that has the value of 1 << 31, namely
+    VIR_CONNECT_GET_ALL_DOMAINS_STATS_ENFORCE_STATS, fails to fit into an
+    'int' on python and is therefore of type 'long'.  Fix sanitytest to
+    count with such fact in order to avoid build failures on 32-bit systems.
+    
+    
+    
+2014-10-06 Martin Kletzander  <mkletzan@redhat.com>
+    
+    sanitytest: check for exported enums
+    We are already collecting list of enums exported and list of enums we
+    want to have available.  Event though there was an issue with one enum
+    fixed with 014d9bbaf368b33a881f1d6b2fd8a5dd285a4f71, there was no test
+    for it and this commit tries to fix that.
+    
+    
+    
+2014-10-02 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Post-release version bump for new dev cycle
+    
+    
 2014-09-30 Pavel Hrdina  <phrdina@redhat.com>
     
     implement new tunable event

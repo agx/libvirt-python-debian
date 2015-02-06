@@ -9,6 +9,9 @@ import string
 sys.path.insert(0, sys.argv[1])
 import libvirt
 
+if sys.version > '3':
+    long = int
+
 # Path to the libvirt API XML file
 xml = sys.argv[2]
 
@@ -16,7 +19,10 @@ f = open(xml, "r")
 tree = lxml.etree.parse(f)
 
 verbose = False
+fail = False
 
+enumvals = {}
+second_pass = []
 wantenums = []
 wantfunctions = []
 
@@ -25,10 +31,50 @@ set = tree.xpath('/api/files/file/exports[@type="function"]/@symbol')
 for n in set:
     wantfunctions.append(n)
 
+set = tree.xpath('/api/symbols/enum')
+for n in set:
+    typ = n.attrib['type']
+    name = n.attrib['name']
+    val = n.attrib['value']
+
+    if typ not in enumvals:
+        enumvals[typ] = {}
+
+    # If the value cannot be converted to int, it is reference to
+    # another enum and needs to be sorted out later on
+    try:
+        val = int(val)
+    except ValueError:
+        second_pass.append(n)
+        continue
+
+    enumvals[typ][name] = int(val)
+
+for n in second_pass:
+    typ = n.attrib['type']
+    name = n.attrib['name']
+    val = n.attrib['value']
+
+    for v in enumvals.values():
+        if val in v:
+            val = int(v[val])
+            break
+
+    if type(val) != int:
+        fail = True
+        print("Cannot get a value of enum %s (originally %s)" % (val, name))
+    enumvals[typ][name] = val
+
 set = tree.xpath('/api/files/file/exports[@type="enum"]/@symbol')
 for n in set:
+    for enumval in enumvals.values():
+        if n in enumval:
+            enum = enumval
+            break
+    # Eliminate sentinels
+    if n.endswith('_LAST') and enum[n] == max(enum.values()):
+        continue
     wantenums.append(n)
-
 
 # Phase 2: Identify all classes and methods in the 'libvirt' python module
 gotenums = []
@@ -41,7 +87,7 @@ for name in dir(libvirt):
     thing = getattr(libvirt, name)
     # Special-case libvirtError to deal with python 2.4 difference
     # in Exception class type reporting.
-    if type(thing) == int:
+    if type(thing) in (int, long):
         gotenums.append(name)
     elif type(thing) == type or name == "libvirtError":
         gottypes.append(name)
@@ -51,10 +97,19 @@ for name in dir(libvirt):
     else:
        pass
 
+for enum in wantenums:
+    if enum not in gotenums:
+        fail = True
+        for typ, enumval in enumvals.items():
+            if enum in enumval:
+                print("FAIL Missing exported enum %s of type %s" % (enum, typ))
+
 for klassname in gottypes:
     klassobj = getattr(libvirt, klassname)
     for name in dir(klassobj):
         if name[0] == '_':
+            continue
+        if name == 'c_pointer':
             continue
         thing = getattr(klassobj, name)
         if callable(thing):
@@ -82,6 +137,9 @@ for cname in wantfunctions:
         continue
 
     if name[0:28] == "virDomainStatsRecordListFree":
+        continue
+
+    if name[0:19] == "virDomainFSInfoFree":
         continue
 
     if name[0:21] == "virDomainListGetStats":
@@ -172,7 +230,7 @@ for name in sorted(basicklassmap):
                 "LookupByID", "LookupByName", "LookupByKey", "LookupByPath",
                 "LookupByMACString", "LookupByUsage", "LookupByVolume",
                 "LookupSCSIHostByWWN", "Restore", "RestoreFlags",
-                "SaveImageDefineXML", "SaveImageGetXMLDesc"]:
+                "SaveImageDefineXML", "SaveImageGetXMLDesc", "DefineXMLFlags"]:
         if klass != "virDomain":
             func = klass[3:] + func
 
@@ -216,7 +274,7 @@ for name in sorted(basicklassmap):
     func = func[0:1].lower() + func[1:]
     if func[0:8] == "nWFilter":
         func = "nwfilter" + func[8:]
-    if func[0:8] == "fSFreeze" or func[0:6] == "fSThaw":
+    if func[0:8] == "fSFreeze" or func[0:6] == "fSThaw" or func[0:6] == "fSInfo":
         func = "fs" + func[2:]
 
     if klass == "virNetwork":
@@ -241,7 +299,6 @@ for name in sorted(basicklassmap):
 
 
 # Phase 5: Validate sure that every C API is mapped to a python API
-fail = False
 usedfunctions = {}
 for name in sorted(finalklassmap):
     klass = finalklassmap[name][0]

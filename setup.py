@@ -245,8 +245,8 @@ class my_rpm(Command):
         """
 
         self.run_command('sdist')
-        os.system('rpmbuild -ta --clean dist/libvirt-python-%s.tar.gz' %
-                  self.distribution.get_version())
+        self.spawn(["/usr/bin/rpmbuild", "-ta", "--clean",
+            "dist/libvirt-python-%s.tar.gz" % self.distribution.get_version()])
 
 class my_test(Command):
     user_options = [
@@ -309,7 +309,7 @@ class my_clean(clean):
 _c_modules, _py_modules = get_module_lists()
 
 setup(name = 'libvirt-python',
-      version = '1.2.9',
+      version = '1.2.12',
       url = 'http://www.libvirt.org',
       maintainer = 'Libvirt Maintainers',
       maintainer_email = 'libvir-list@redhat.com',
