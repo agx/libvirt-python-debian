@@ -1,3 +1,135 @@
+2015-04-22 Victor Stinner  <victor.stinner@gmail.com>
+    
+    libvirt-python: add classifiers to setup.py
+    Add the Python 3 classifier, needed by the caniusepython3 tool to check
+    if dependencies of a projects are Python 3 compatible:
+    
+    https://caniusepython3.com/
+    
+    
+2015-04-22 Victor Stinner  <victor.stinner@gmail.com>
+    
+    Add tox.ini to run tests on Python 2.6, 2.7 & 3.4
+    
+    
+2015-04-22 Victor Stinner  <victor.stinner@gmail.com>
+    
+    sanitytest.py parameters are now optional
+    When called without parameters, sanitytest.py doesn't touch sys.path and
+    locates itself the patch to the libvirt-api.xml file using pkg-config.
+    
+    This change makes possible to run sanitytest.py from tox.
+    
+    
+2015-04-15 Ján Tomko  <jtomko@redhat.com>
+    
+    Implement the DEVICE_ADDED event
+    
+    
+2015-04-02 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Post-release version bump to 1.2.15
+    
+    
+2015-03-28 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Expose virDomainInterfacesAddresses to python binding
+    examples/Makefile.am:
+    * Add new file domipaddrs.py
+    
+    examples/README:
+    * Add documentation for the python example
+    
+    libvirt-override-api.xml:
+    * Add new symbol for virDomainInterfacesAddresses
+    
+    libvirt-override.c:
+    * Hand written python api
+    
+    Example:
+    $ python examples/domipaddrs.py qemu:///system f18
+    Interface  MAC address          Protocol     Address
+    vnet0      52:54:00:20:70:3d    ipv4         192.168.105.240/16
+    
+    
+    
+2015-03-26 Ján Tomko  <jtomko@redhat.com>
+    
+    Rename virDomainGetIOThreadsInfo to virDomainGetIOThreadInfo
+    
+    
+2015-03-26 Ján Tomko  <jtomko@redhat.com>
+    
+    Rename virDomainIOThreadsInfoFree to virDomainIOThreadInfoFree
+    
+    
+2015-03-19 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Post-release version bump to 1.2.14
+    
+    
+2015-03-11 John Ferlan  <jferlan@redhat.com>
+    
+    Support virDomainPinIOThread
+    Support the libvirt_virDomainSetIOThreads method using code that mimics
+    the existing libvirt_virDomainPinVcpuFlags method
+    
+    The following is a sample session assuming guest 'iothr-gst' has IOThreads
+    configured (it's currently running, too)
+    
+    >>> import libvirt
+    >>> con=libvirt.open("qemu:///system")
+    >>> dom=con.lookupByName('iothr-gst')
+    >>> dom.ioThreadsInfo()
+    [(1, [False, False, True, False]), (2, [False, False, False, True]), (3, [True, True, True, True])]
+    >>> cpumap=(True,True,True,False)
+    >>> dom.pinIOThread(3,cpumap)
+    0
+    >>> print dom.ioThreadsInfo()
+    [(1, [False, False, True, False]), (2, [False, False, False, True]), (3, [True, True, True, False])]
+    >>>
+    
+    merge
+    
+    
+2015-03-11 John Ferlan  <jferlan@redhat.com>
+    
+    Support virDomainGetIOThreadsInfo and virDomainIOThreadsInfoFree
+    Add support for the libvirt_virDomainGetIOThreadsInfo method. This
+    code mostly follows the libvirt_virDomainGetVcpuPinInfo method, but
+    also takes some from the libvirt_virNodeGetCPUMap method with respect
+    to building the cpumap into the returned tuple rather than two separate
+    tuples which vcpu pinning generates
+    
+    Assuming two domains, one with IOThreads defined (eg, 'iothr-gst') and
+    one without ('noiothr-gst'), execute the following in an 'iothr.py' file:
+    
+    import libvirt
+    con=libvirt.open("qemu:///system")
+    dom=con.lookupByName('iothr-gst')
+    print dom.ioThreadsInfo()
+    dom2=con.lookupByName('noiothr-gst')
+    print dom2.ioThreadsInfo()
+    
+    $ python iothr.py
+    [(1, [False, False, True, False]), (2, [False, False, False, True]), (3, [True, True, True, True])]
+    []
+    $
+    
+    
+2015-03-05 Ján Tomko  <jtomko@redhat.com>
+    
+    Clarify description for virNodeGetSecurityModel
+    s/host/hypervisor/ to match the wording used by the C binding.
+    
+    https://bugzilla.redhat.com/show_bug.cgi?id=1198518
+    
+    
+2015-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Post-release version bump to 1.2.13
+    
+    
 2015-01-19 Pavel Hrdina  <phrdina@redhat.com>
     
     sanitytest: fix mapping test for virDomainDefineXMLFlags

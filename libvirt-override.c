@@ -1990,6 +1990,162 @@ libvirt_virDomainGetEmulatorPinInfo(PyObject *self ATTRIBUTE_UNUSED,
 }
 #endif /* LIBVIR_CHECK_VERSION(0, 10, 0) */
 
+#if LIBVIR_CHECK_VERSION(1, 2, 14)
+static PyObject *
+libvirt_virDomainGetIOThreadInfo(PyObject *self ATTRIBUTE_UNUSED,
+                                 PyObject *args)
+{
+    virDomainPtr domain;
+    PyObject *pyobj_domain;
+    PyObject *py_retval = NULL;
+    PyObject *py_iothrinfo = NULL;
+    virDomainIOThreadInfoPtr *iothrinfo = NULL;
+    unsigned int flags;
+    size_t pcpu, i;
+    int niothreads, cpunum;
+
+    if (!PyArg_ParseTuple(args, (char *)"OI:virDomainGetIOThreadInfo",
+                          &pyobj_domain, &flags))
+        return NULL;
+    domain = (virDomainPtr) PyvirDomain_Get(pyobj_domain);
+
+    if ((cpunum = getPyNodeCPUCount(virDomainGetConnect(domain))) < 0)
+        return VIR_PY_NONE;
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    niothreads = virDomainGetIOThreadInfo(domain, &iothrinfo, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (niothreads < 0) {
+        py_retval = VIR_PY_NONE;
+        goto cleanup;
+    }
+
+    /* convert to a Python list */
+    if ((py_iothrinfo = PyList_New(niothreads)) == NULL)
+        goto cleanup;
+
+    /* NOTE: If there are zero IOThreads we will return an empty list */
+    for (i = 0; i < niothreads; i++) {
+        PyObject *iothrtpl = NULL;
+        PyObject *iothrid = NULL;
+        PyObject *iothrmap = NULL;
+        virDomainIOThreadInfoPtr iothr = iothrinfo[i];
+
+        if (iothr == NULL) {
+            py_retval = VIR_PY_NONE;
+            goto cleanup;
+        }
+
+        if ((iothrtpl = PyTuple_New(2)) == NULL ||
+            PyList_SetItem(py_iothrinfo, i, iothrtpl) < 0) {
+            Py_XDECREF(iothrtpl);
+            goto cleanup;
+        }
+
+        /* 0: IOThread ID */
+        if ((iothrid = libvirt_uintWrap(iothr->iothread_id)) == NULL ||
+            PyTuple_SetItem(iothrtpl, 0, iothrid) < 0) {
+            Py_XDECREF(iothrid);
+            goto cleanup;
+        }
+
+        /* 1: CPU map */
+        if ((iothrmap = PyList_New(cpunum)) == NULL ||
+            PyTuple_SetItem(iothrtpl, 1, iothrmap) < 0) {
+            Py_XDECREF(iothrmap);
+            goto cleanup;
+        }
+        for (pcpu = 0; pcpu < cpunum; pcpu++) {
+            PyObject *pyused;
+            if ((pyused = PyBool_FromLong(VIR_CPU_USED(iothr->cpumap,
+                                                       pcpu))) == NULL) {
+                py_retval = VIR_PY_NONE;
+                goto cleanup;
+            }
+            if (PyList_SetItem(iothrmap, pcpu, pyused) < 0) {
+                Py_XDECREF(pyused);
+                goto cleanup;
+            }
+        }
+    }
+
+    py_retval = py_iothrinfo;
+    py_iothrinfo = NULL;
+
+cleanup:
+    for (i = 0; i < niothreads; i++)
+        virDomainIOThreadInfoFree(iothrinfo[i]);
+    VIR_FREE(iothrinfo);
+    Py_XDECREF(py_iothrinfo);
+    return py_retval;
+}
+
+static PyObject *
+libvirt_virDomainPinIOThread(PyObject *self ATTRIBUTE_UNUSED,
+                             PyObject *args)
+{
+    virDomainPtr domain;
+    PyObject *pyobj_domain, *pycpumap;
+    PyObject *ret = NULL;
+    unsigned char *cpumap;
+    int cpumaplen, iothread_val, tuple_size, cpunum;
+    size_t i;
+    unsigned int flags;
+    int i_retval;
+
+    if (!PyArg_ParseTuple(args, (char *)"OiOI:virDomainPinIOThread",
+                          &pyobj_domain, &iothread_val, &pycpumap, &flags))
+        return NULL;
+    domain = (virDomainPtr) PyvirDomain_Get(pyobj_domain);
+
+    if ((cpunum = getPyNodeCPUCount(virDomainGetConnect(domain))) < 0)
+        return VIR_PY_INT_FAIL;
+
+    if (PyTuple_Check(pycpumap)) {
+        if ((tuple_size = PyTuple_Size(pycpumap)) == -1)
+            return ret;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Unexpected type, tuple is required");
+        return ret;
+    }
+
+    cpumaplen = VIR_CPU_MAPLEN(cpunum);
+    if (VIR_ALLOC_N(cpumap, cpumaplen) < 0)
+        return PyErr_NoMemory();
+
+    for (i = 0; i < tuple_size; i++) {
+        PyObject *flag = PyTuple_GetItem(pycpumap, i);
+        bool b;
+
+        if (!flag || libvirt_boolUnwrap(flag, &b) < 0)
+            goto cleanup;
+
+        if (b)
+            VIR_USE_CPU(cpumap, i);
+        else
+            VIR_UNUSE_CPU(cpumap, i);
+    }
+
+    for (; i < cpunum; i++)
+        VIR_UNUSE_CPU(cpumap, i);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    i_retval = virDomainPinIOThread(domain, iothread_val,
+                                    cpumap, cpumaplen, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+    if (i_retval < 0) {
+        ret = VIR_PY_INT_FAIL;
+        goto cleanup;
+    }
+    ret = VIR_PY_INT_SUCCESS;
+
+cleanup:
+    VIR_FREE(cpumap);
+    return ret;
+}
+
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 14) */
 
 /************************************************************************
  *									*
@@ -4964,6 +5120,131 @@ cleanup:
     return py_retval;
 }
 
+
+#if LIBVIR_CHECK_VERSION(1, 2, 14)
+static PyObject *
+libvirt_virDomainInterfaceAddresses(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    PyObject *py_retval = VIR_PY_NONE;
+    PyObject *pyobj_domain;
+    virDomainPtr domain;
+    virDomainInterfacePtr *ifaces = NULL;
+    unsigned int source;
+    unsigned int flags;
+    int ifaces_count = 0;
+    size_t i, j;
+
+    if (!PyArg_ParseTuple(args, (char *) "Oii:virDomainInterfaceAddresses",
+                          &pyobj_domain, &source, &flags))
+        goto error;
+
+    domain = (virDomainPtr) PyvirDomain_Get(pyobj_domain);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    ifaces_count = virDomainInterfaceAddresses(domain, &ifaces, source, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (ifaces_count < 0)
+        goto cleanup;
+
+    if (!(py_retval = PyDict_New()))
+        goto error;
+
+    for (i = 0; i < ifaces_count; i++) {
+        virDomainInterfacePtr iface = ifaces[i];
+        PyObject *py_addrs = NULL;
+        PyObject *py_iface = NULL;
+        PyObject *py_iname = NULL;
+        PyObject *py_ivalue = NULL;
+
+        if (!(py_iface = PyDict_New()))
+            goto error;
+
+        if ((py_iname = libvirt_charPtrWrap(iface->name)) == NULL ||
+            PyDict_SetItem(py_retval, py_iname, py_iface) < 0) {
+            Py_XDECREF(py_iname);
+            Py_DECREF(py_iface);
+            goto error;
+        }
+
+        if (iface->naddrs) {
+            if (!(py_addrs = PyList_New(iface->naddrs))) {
+                goto error;
+            }
+        } else {
+            py_addrs = VIR_PY_NONE;
+        }
+
+        if ((py_iname = libvirt_constcharPtrWrap("addrs")) == NULL ||
+            PyDict_SetItem(py_iface, py_iname, py_addrs) < 0) {
+            Py_XDECREF(py_iname);
+            Py_DECREF(py_addrs);
+            goto error;
+        }
+
+        if ((py_iname = libvirt_constcharPtrWrap("hwaddr")) == NULL ||
+            (py_ivalue = libvirt_constcharPtrWrap(iface->hwaddr)) == NULL ||
+            PyDict_SetItem(py_iface, py_iname, py_ivalue) < 0) {
+            Py_XDECREF(py_iname);
+            Py_XDECREF(py_ivalue);
+            goto error;
+        }
+
+        for (j = 0; j < iface->naddrs; j++) {
+            virDomainIPAddressPtr addr = &(iface->addrs[j]);
+            PyObject *py_addr = PyDict_New();
+
+            if (!py_addr)
+                goto error;
+
+            if (PyList_SetItem(py_addrs, j, py_addr) < 0) {
+                Py_DECREF(py_addr);
+                goto error;
+            }
+
+            if ((py_iname = libvirt_constcharPtrWrap("addr")) == NULL ||
+                (py_ivalue = libvirt_constcharPtrWrap(addr->addr)) == NULL ||
+                PyDict_SetItem(py_addr, py_iname, py_ivalue) < 0) {
+                Py_XDECREF(py_iname);
+                Py_XDECREF(py_ivalue);
+                goto error;
+            }
+            if ((py_iname = libvirt_constcharPtrWrap("prefix")) == NULL ||
+                (py_ivalue = libvirt_intWrap(addr->prefix)) == NULL ||
+                PyDict_SetItem(py_addr, py_iname, py_ivalue) < 0) {
+                Py_XDECREF(py_iname);
+                Py_XDECREF(py_ivalue);
+                goto error;
+            }
+            if ((py_iname = libvirt_constcharPtrWrap("type")) == NULL ||
+                (py_ivalue = libvirt_intWrap(addr->type)) == NULL ||
+                PyDict_SetItem(py_addr, py_iname, py_ivalue) < 0) {
+                Py_XDECREF(py_iname);
+                Py_XDECREF(py_ivalue);
+                goto error;
+            }
+        }
+    }
+
+cleanup:
+    if (ifaces && ifaces_count > 0) {
+        for (i = 0; i < ifaces_count; i++) {
+            virDomainInterfaceFree(ifaces[i]);
+        }
+    }
+    VIR_FREE(ifaces);
+
+    return py_retval;
+
+error:
+    Py_XDECREF(py_retval);
+    py_retval = NULL;
+    goto cleanup;
+}
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 14) */
+
+
 /*******************************************
  * Helper functions to avoid importing modules
  * for every callback
@@ -6620,6 +6901,58 @@ libvirt_virConnectDomainEventAgentLifecycleCallback(virConnectPtr conn ATTRIBUTE
 }
 #endif /* VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE */
 
+#ifdef VIR_DOMAIN_EVENT_ID_DEVICE_ADDED
+static int
+libvirt_virConnectDomainEventDeviceAddedCallback(virConnectPtr conn ATTRIBUTE_UNUSED,
+                                                 virDomainPtr dom,
+                                                 const char *devAlias,
+                                                 void *opaque)
+{
+    PyObject *pyobj_cbData = (PyObject*)opaque;
+    PyObject *pyobj_dom;
+    PyObject *pyobj_ret = NULL;
+    PyObject *pyobj_conn;
+    PyObject *dictKey;
+    int ret = -1;
+
+    LIBVIRT_ENSURE_THREAD_STATE;
+
+    if (!(dictKey = libvirt_constcharPtrWrap("conn")))
+        goto cleanup;
+    pyobj_conn = PyDict_GetItem(pyobj_cbData, dictKey);
+    Py_DECREF(dictKey);
+
+    /* Create a python instance of this virDomainPtr */
+    virDomainRef(dom);
+    if (!(pyobj_dom = libvirt_virDomainPtrWrap(dom))) {
+        virDomainFree(dom);
+        goto cleanup;
+    }
+    Py_INCREF(pyobj_cbData);
+
+    /* Call the Callback Dispatcher */
+    pyobj_ret = PyObject_CallMethod(pyobj_conn,
+                                    (char*)"_dispatchDomainEventDeviceAddedCallback",
+                                    (char*)"OsO",
+                                    pyobj_dom, devAlias, pyobj_cbData);
+
+    Py_DECREF(pyobj_cbData);
+    Py_DECREF(pyobj_dom);
+
+ cleanup:
+    if (!pyobj_ret) {
+        DEBUG("%s - ret:%p\n", __FUNCTION__, pyobj_ret);
+        PyErr_Print();
+    } else {
+        Py_DECREF(pyobj_ret);
+        ret = 0;
+    }
+
+    LIBVIRT_RELEASE_THREAD_STATE;
+    return ret;
+
+}
+#endif /* VIR_DOMAIN_EVENT_ID_DEVICE_ADDED */
 
 static PyObject *
 libvirt_virConnectDomainEventRegisterAny(ATTRIBUTE_UNUSED PyObject *self,
@@ -6718,6 +7051,11 @@ libvirt_virConnectDomainEventRegisterAny(ATTRIBUTE_UNUSED PyObject *self,
         cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventAgentLifecycleCallback);
         break;
 #endif /* VIR_DOMAIN_EVENT_ID_AGENT_LIFECYCLE */
+#ifdef VIR_DOMAIN_EVENT_ID_DEVICE_ADDED
+    case VIR_DOMAIN_EVENT_ID_DEVICE_ADDED:
+        cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventDeviceAddedCallback);
+        break;
+#endif /* VIR_DOMAIN_EVENT_ID_DEVICE_ADDED */
     case VIR_DOMAIN_EVENT_ID_LAST:
         break;
     }
@@ -8483,6 +8821,10 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virDomainGetEmulatorPinInfo", libvirt_virDomainGetEmulatorPinInfo, METH_VARARGS, NULL},
     {(char *) "virDomainPinEmulator", libvirt_virDomainPinEmulator, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(0, 10, 0) */
+#if LIBVIR_CHECK_VERSION(1, 2, 14)
+    {(char *) "virDomainGetIOThreadInfo", libvirt_virDomainGetIOThreadInfo, METH_VARARGS, NULL},
+    {(char *) "virDomainPinIOThread", libvirt_virDomainPinIOThread, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 14) */
     {(char *) "virConnectListStoragePools", libvirt_virConnectListStoragePools, METH_VARARGS, NULL},
     {(char *) "virConnectListDefinedStoragePools", libvirt_virConnectListDefinedStoragePools, METH_VARARGS, NULL},
 #if LIBVIR_CHECK_VERSION(0, 10, 2)
@@ -8590,6 +8932,9 @@ static PyMethodDef libvirtMethods[] = {
 #if LIBVIR_CHECK_VERSION(1, 2, 11)
     {(char *) "virDomainGetFSInfo", libvirt_virDomainGetFSInfo, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(1, 2, 11) */
+#if LIBVIR_CHECK_VERSION(1, 2, 14)
+    {(char *) "virDomainInterfaceAddresses", libvirt_virDomainInterfaceAddresses, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(1, 2, 14) */
     {NULL, NULL, 0, NULL}
 };
 
