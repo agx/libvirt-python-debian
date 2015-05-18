@@ -6,7 +6,7 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 1.2.12
+Version: 1.2.15
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
