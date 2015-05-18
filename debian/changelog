@@ -1,3 +1,15 @@
+libvirt-python (1.2.15-1) unstable; urgency=medium
+
+  * [42694b7] Adjust gbp.conf for experimental
+  * [a7a5386] New upstream version 1.2.12
+  * [984d13c] Require libvirt 1.2.12 to get all features enabled
+  * [c7637c1] New upstream version 1.2.15
+  * [36857e9] Require libvirt 1.2.15
+  * [f00217a] Make build reproducible.  Thanks to Chris Lamb for the patch
+    (Closes: #779679)
+
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 18 May 2015 23:42:21 +0200
+
 libvirt-python (1.2.9-1) unstable; urgency=medium
 
   * [e36b886] New upstream version 1.2.9 (Closes: #765159, #765108)
