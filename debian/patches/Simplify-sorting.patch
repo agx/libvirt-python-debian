@@ -1,0 +1,25 @@
+From: =?utf-8?q?Guido_G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Mon, 18 May 2015 19:43:31 +0200
+Subject: Simplify sorting
+
+funcs.keys() can't be None, only the empty array
+---
+ generator.py | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/generator.py b/generator.py
+index c14b0d4..861f166 100755
+--- a/generator.py
++++ b/generator.py
+@@ -931,10 +931,7 @@ def buildStubs(module, api_xml):
+     wrapper.write("#include \"typewrappers.h\"\n")
+     wrapper.write("#include \"build/" + module + ".h\"\n\n")
+ 
+-    funcnames = list(funcs.keys())
+-    if funcnames is not None:
+-        funcnames.sort()
+-    for function in funcnames:
++    for function in sorted(funcs.keys()):
+         # Skip the functions which are not for the module
+         ret = print_function_wrapper(module, function, wrapper, export, include)
+         if ret < 0:

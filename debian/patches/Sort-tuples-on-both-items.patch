@@ -1,0 +1,44 @@
+From: =?utf-8?q?Guido_G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Mon, 18 May 2015 19:46:13 +0200
+Subject: Sort tuples on both items
+
+In order to achieve reproducible builds[0] we want the items within
+enums always generated in the same order so sort on both items in the
+tuple.
+
+[0] https://wiki.debian.org/ReproducibleBuilds/About
+---
+ generator.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/generator.py b/generator.py
+index 861f166..676243c 100755
+--- a/generator.py
++++ b/generator.py
+@@ -1852,7 +1852,7 @@ def buildWrappers(module):
+             value = int(value)
+         except ValueError:
+             value = float('inf')
+-        return value
++        return value, data[0]
+ 
+     # Resolve only one level of reference
+     def resolveEnum(enum, data):
+@@ -1990,7 +1990,7 @@ def qemuBuildWrappers(module):
+     for type,enum in sorted(qemu_enums.items()):
+         fd.write("# %s\n" % type)
+         items = list(enum.items())
+-        items.sort(key=lambda i: int(i[1]))
++        items.sort(key=lambda i: (int(i[1]), i[0]))
+         for name,value in items:
+             fd.write("%s = %s\n" % (name,value))
+         fd.write("\n")
+@@ -2103,7 +2103,7 @@ def lxcBuildWrappers(module):
+     for type,enum in sorted(lxc_enums.items()):
+         fd.write("# %s\n" % type)
+         items = list(enum.items())
+-        items.sort(key=lambda i: int(i[1]))
++        items.sort(key=lambda i: (int(i[1]), i[0]))
+         for name,value in items:
+             fd.write("%s = %s\n" % (name,value))
+         fd.write("\n")
