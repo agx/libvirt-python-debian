@@ -1,3 +1,10 @@
+libvirt-python (1.2.18-1) unstable; urgency=medium
+
+  * [c5ff0ce] New upstream version 1.2.18
+  * [0df5ce5] Drop patches all applied upstream
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 14 Aug 2015 22:44:07 +0200
+
 libvirt-python (1.2.15-1) unstable; urgency=medium
 
   * [42694b7] Adjust gbp.conf for experimental
