@@ -176,7 +176,9 @@ class my_sdist(sdist):
         f = os.popen("git log --pretty=format:'%aN <%aE>'")
         authors = []
         for line in f:
-            authors.append("   " + line.strip())
+            line = "   " + line.strip()
+            if line not in authors:
+                authors.append(line)
 
         authors.sort(key=str.lower)
 
@@ -309,7 +311,7 @@ class my_clean(clean):
 _c_modules, _py_modules = get_module_lists()
 
 setup(name = 'libvirt-python',
-      version = '1.2.15',
+      version = '1.2.18',
       url = 'http://www.libvirt.org',
       maintainer = 'Libvirt Maintainers',
       maintainer_email = 'libvir-list@redhat.com',

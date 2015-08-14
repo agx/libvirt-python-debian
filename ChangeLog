@@ -1,3 +1,146 @@
+2015-07-30 Peter Krempa  <pkrempa@redhat.com>
+    
+    iothread: Fix crash if virDomainGetIOThreadInfo returns error
+    The cleanup portion of libvirt_virDomainGetIOThreadInfo would try to
+    clean the returned structures but the count of iothreads was set to -1.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1248295
+    
+    
+2015-07-17 Michal Privoznik  <mprivozn@redhat.com>
+    
+    examples: Introduce nodestats example
+    So, this is an exercise to show libvirt capabilities. Firstly, for
+    each host NUMA nodes some statistics are printed out, i.e. total
+    memory and free memory. Then, for each running domain, that has memory
+    strictly bound to certain host nodes, a small statistics of how much
+    memory it takes is printed out too. For instance:
+    
+    # ./examples/nodestats.py
+    NUMA stats
+    NUMA nodes:     0       1       2       3
+    MemTotal:       3950    3967    3937    3943
+    MemFree:        66      56      42      41
+    Domain 'fedora':
+    Overall memory: 1536 MiB
+    Domain 'fedora22':
+    Overall memory: 2048 MiB
+    Domain 'fedora21':
+    Overall memory: 1024 MiB nodes 0-1
+    Node 0: 1024 MiB nodes 0-1
+    Domain 'gentoo':
+    Overall memory: 4096 MiB nodes 0-3
+    Node 0: 1024 MiB nodes 0
+    Node 1: 1024 MiB nodes 1
+    Node 2: 1024 MiB nodes 2
+    Node 3: 1024 MiB nodes 3
+    
+    We can see 4 host NUMA nodes, all of them having roughly 4GB of RAM.
+    Yeah, all of them has nearly all the memory consumed. Then, there are
+    four domains running. For instance, domain 'fedora' has 1.5GB memory
+    which is not pinned onto any specific host NUMA node. Domain 'gentoo' on
+    the other hand has 4GB memory and has 4 NUMA nodes which are pinned 1:1
+    to host nodes.
+    
+    
+    
+2015-06-29 Pavel Boldin  <pboldin@mirantis.com>
+    
+    virPyDictToTypedParams: packing lists of values
+    Pack a list or a tuple of values passed to a Python method to the
+    multi-value parameter.
+    
+    
+2015-06-28 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Revert "Change livbirt version to 1.3.0 for the next release"
+    This reverts commit 751e016f09a6a0dd372667bdd2b322731718e359.
+    
+    Since Admin API was deferred for a release and the minor version bump
+    didn't happen, it must not happen in libvirt-python either, for
+    compatibility reasons.
+    
+    
+2015-06-16 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Change livbirt version to 1.3.0 for the next release
+    Since the background for Admin API is merged upstream, we are bumping
+    the minor release version as discussed previously
+    
+    
+    
+2015-06-08 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Provide symbolic names for typed parameters
+    https://bugzilla.redhat.com/show_bug.cgi?id=1222795
+    
+    
+    
+2015-06-05 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Post-release version bump to 1.2.17
+    
+    
+2015-06-01 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Include tests in MANIFEST
+    The unit tests were missing from the tar.gz archives due to not
+    being listed in the MANIFEST.in file
+    
+    
+    
+2015-05-28 Jim Fehlig  <jfehlig@suse.com>
+    
+    Fix duplicate entries in AUTHORS
+    The generated AUTHORS file contains many duplicates.  If an author
+    has N commits, there will be N entries for the author in AUTHORS.
+    Check if an author already exists in the list before appending.
+    While at it, add a .mailmap (derived from libivrt's .mailmap) to
+    futher tidy the generated AUTHORS list.
+    
+    
+2015-05-20 Guido Günther  <agx@sigxcpu.org>
+    
+    Sort tuples on both items
+    In order to achieve reproducible builds[0] we want the items within
+    enums always generated in the same order so sort on both items in the
+    tuple.
+    
+    [0] https://wiki.debian.org/ReproducibleBuilds/About
+    
+    
+2015-05-20 Guido Günther  <agx@sigxcpu.org>
+    
+    Simplify sorting
+    funcs.keys() can't be None, only the empty array
+    
+    
+2015-05-20 Guido Günther  <agx@sigxcpu.org>
+    
+    Sort dictionary keys
+    In order to achive reproducible builds[0] we want functions and enums
+    always generated in the same order.
+    
+    [0] https://wiki.debian.org/ReproducibleBuilds/About
+    
+    
+2015-05-11 Peter Krempa  <pkrempa@redhat.com>
+    
+    examples: Add example to make guest agent lifecycle event useful
+    This example allows to use the guest agent event and metadata to track
+    vCPU count set via the guest agent (agent-based onlining/offlining) and
+    keep it persistent accross domain restarts.
+    
+    The daemon listens for the agent lifecycle event, and if it's received
+    it looks into doman's metadata to see whether a desired count was set
+    and issues the guest agent command.
+    
+    
+2015-05-11 Peter Krempa  <pkrempa@redhat.com>
+    
+    Post-release version bump to 1.2.16
+    
+    
 2015-04-22 Victor Stinner  <victor.stinner@gmail.com>
     
     libvirt-python: add classifiers to setup.py
