@@ -10,6 +10,7 @@ enums = {} # { enumType: { enumConstant: enumValue } }
 lxc_enums = {} # { enumType: { enumConstant: enumValue } }
 qemu_enums = {} # { enumType: { enumConstant: enumValue } }
 event_ids = []
+params = [] # [ (parameName, paramValue)... ]
 
 import os
 import sys
@@ -134,6 +135,9 @@ class docParser(xml.sax.handler.ContentHandler):
                 lxc_enum(attrs['type'],attrs['name'],attrs['value'])
             elif attrs['file'] == "libvirt-qemu":
                 qemu_enum(attrs['type'],attrs['name'],attrs['value'])
+        elif tag == "macro":
+            if "string" in attrs:
+                params.append((attrs['name'], attrs['string']))
 
     def end(self, tag):
         if debug:
@@ -931,10 +935,7 @@ def buildStubs(module, api_xml):
     wrapper.write("#include \"typewrappers.h\"\n")
     wrapper.write("#include \"build/" + module + ".h\"\n\n")
 
-    funcnames = list(funcs.keys())
-    if funcnames is not None:
-        funcnames.sort()
-    for function in funcnames:
+    for function in sorted(funcs.keys()):
         # Skip the functions which are not for the module
         ret = print_function_wrapper(module, function, wrapper, export, include)
         if ret < 0:
@@ -1855,7 +1856,7 @@ def buildWrappers(module):
             value = int(value)
         except ValueError:
             value = float('inf')
-        return value
+        return value, data[0]
 
     # Resolve only one level of reference
     def resolveEnum(enum, data):
@@ -1883,6 +1884,10 @@ def buildWrappers(module):
         for name,value in items:
             classes.write("%s = %s\n" % (name,value))
         classes.write("\n")
+
+    classes.write("# typed parameter names\n")
+    for name, value in params:
+        classes.write("%s = \"%s\"\n" % (name, value))
 
     classes.close()
 
@@ -1940,7 +1945,7 @@ def qemuBuildWrappers(module):
     #
     # Generate functions directly, no classes
     #
-    for name in list(qemu_functions.keys()):
+    for name in sorted(qemu_functions.keys()):
         func = nameFixup(name, 'None', None, None)
         (desc, ret, args, file, mod, cond) = qemu_functions[name]
         fd.write("def %s(" % func)
@@ -1990,10 +1995,10 @@ def qemuBuildWrappers(module):
     #
     # Generate enum constants
     #
-    for type,enum in list(qemu_enums.items()):
+    for type,enum in sorted(qemu_enums.items()):
         fd.write("# %s\n" % type)
         items = list(enum.items())
-        items.sort(key=lambda i: int(i[1]))
+        items.sort(key=lambda i: (int(i[1]), i[0]))
         for name,value in items:
             fd.write("%s = %s\n" % (name,value))
         fd.write("\n")
@@ -2053,7 +2058,7 @@ def lxcBuildWrappers(module):
     #
     # Generate functions directly, no classes
     #
-    for name in list(lxc_functions.keys()):
+    for name in sorted(lxc_functions.keys()):
         func = nameFixup(name, 'None', None, None)
         (desc, ret, args, file, mod, cond) = lxc_functions[name]
         fd.write("def %s(" % func)
@@ -2103,10 +2108,10 @@ def lxcBuildWrappers(module):
     #
     # Generate enum constants
     #
-    for type,enum in list(lxc_enums.items()):
+    for type,enum in sorted(lxc_enums.items()):
         fd.write("# %s\n" % type)
         items = list(enum.items())
-        items.sort(key=lambda i: int(i[1]))
+        items.sort(key=lambda i: (int(i[1]), i[0]))
         for name,value in items:
             fd.write("%s = %s\n" % (name,value))
         fd.write("\n")
