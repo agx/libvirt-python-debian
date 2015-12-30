@@ -34,7 +34,7 @@ Package: python3-libvirt
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python3:Depends}, libvirt0 (>= 1.2.8~)
 XB-Python-Version: ${python3:Versions}
-Recommends: libvirt-bin
+Recommends: libvirt-daemon
 Section: python
 Description: libvirt Python 3 bindings
  Libvirt is a C toolkit to interact with the virtualization capabilities
