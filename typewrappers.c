@@ -97,8 +97,7 @@ libvirt_charPtrSizeWrap(char *str, Py_ssize_t size)
     PyObject *ret;
 
     if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 #if PY_MAJOR_VERSION > 2
     ret = PyBytes_FromStringAndSize(str, size);
@@ -114,8 +113,7 @@ libvirt_charPtrWrap(char *str)
     PyObject *ret;
 
     if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 #if PY_MAJOR_VERSION > 2
     ret = PyUnicode_FromString(str);
@@ -131,8 +129,7 @@ libvirt_constcharPtrWrap(const char *str)
     PyObject *ret;
 
     if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 #if PY_MAJOR_VERSION > 2
     ret = PyUnicode_FromString(str);
@@ -145,14 +142,15 @@ libvirt_constcharPtrWrap(const char *str)
 PyObject *
 libvirt_boolWrap(int val)
 {
-  if (val)
-      Py_RETURN_TRUE;
-  else
-      Py_RETURN_FALSE;
+    if (val)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
 }
 
 int
-libvirt_intUnwrap(PyObject *obj, int *val)
+libvirt_intUnwrap(PyObject *obj,
+                  int *val)
 {
     long long_val;
 
@@ -188,7 +186,8 @@ libvirt_intUnwrap(PyObject *obj, int *val)
 }
 
 int
-libvirt_uintUnwrap(PyObject *obj, unsigned int *val)
+libvirt_uintUnwrap(PyObject *obj,
+                   unsigned int *val)
 {
     long long_val;
 
@@ -216,7 +215,8 @@ libvirt_uintUnwrap(PyObject *obj, unsigned int *val)
 }
 
 int
-libvirt_longUnwrap(PyObject *obj, long *val)
+libvirt_longUnwrap(PyObject *obj,
+                   long *val)
 {
     long long_val;
 
@@ -234,7 +234,8 @@ libvirt_longUnwrap(PyObject *obj, long *val)
 }
 
 int
-libvirt_ulongUnwrap(PyObject *obj, unsigned long *val)
+libvirt_ulongUnwrap(PyObject *obj,
+                    unsigned long *val)
 {
     long long_val;
 
@@ -258,7 +259,8 @@ libvirt_ulongUnwrap(PyObject *obj, unsigned long *val)
 }
 
 int
-libvirt_longlongUnwrap(PyObject *obj, long long *val)
+libvirt_longlongUnwrap(PyObject *obj,
+                       long long *val)
 {
     long long llong_val = -1;
 
@@ -287,7 +289,8 @@ libvirt_longlongUnwrap(PyObject *obj, long long *val)
 }
 
 int
-libvirt_ulonglongUnwrap(PyObject *obj, unsigned long long *val)
+libvirt_ulonglongUnwrap(PyObject *obj,
+                        unsigned long long *val)
 {
     unsigned long long ullong_val = -1;
 
@@ -324,7 +327,8 @@ libvirt_ulonglongUnwrap(PyObject *obj, unsigned long long *val)
 }
 
 int
-libvirt_doubleUnwrap(PyObject *obj, double *val)
+libvirt_doubleUnwrap(PyObject *obj,
+                     double *val)
 {
     double double_val;
 
@@ -342,7 +346,8 @@ libvirt_doubleUnwrap(PyObject *obj, double *val)
 }
 
 int
-libvirt_boolUnwrap(PyObject *obj, bool *val)
+libvirt_boolUnwrap(PyObject *obj,
+                   bool *val)
 {
     int ret;
 
@@ -359,7 +364,8 @@ libvirt_boolUnwrap(PyObject *obj, bool *val)
 }
 
 int
-libvirt_charPtrUnwrap(PyObject *obj, char **str)
+libvirt_charPtrUnwrap(PyObject *obj,
+                      char **str)
 {
 #if PY_MAJOR_VERSION > 2
     PyObject *bytes;
@@ -386,7 +392,10 @@ libvirt_charPtrUnwrap(PyObject *obj, char **str)
     return ret && *str ? 0 : -1;
 }
 
-int libvirt_charPtrSizeUnwrap(PyObject *obj, char **str, Py_ssize_t *size)
+int
+libvirt_charPtrSizeUnwrap(PyObject *obj,
+                          char **str,
+                          Py_ssize_t *size)
 {
     int ret;
 #if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION <= 4
@@ -419,8 +428,7 @@ libvirt_virDomainPtrWrap(virDomainPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virDomainPtr", NULL);
@@ -433,8 +441,7 @@ libvirt_virNetworkPtrWrap(virNetworkPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virNetworkPtr", NULL);
@@ -447,8 +454,7 @@ libvirt_virInterfacePtrWrap(virInterfacePtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virInterfacePtr", NULL);
@@ -461,8 +467,7 @@ libvirt_virStoragePoolPtrWrap(virStoragePoolPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virStoragePoolPtr", NULL);
@@ -475,8 +480,7 @@ libvirt_virStorageVolPtrWrap(virStorageVolPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virStorageVolPtr", NULL);
@@ -489,8 +493,7 @@ libvirt_virConnectPtrWrap(virConnectPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virConnectPtr", NULL);
@@ -503,8 +506,7 @@ libvirt_virNodeDevicePtrWrap(virNodeDevicePtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virNodeDevicePtr", NULL);
@@ -517,8 +519,7 @@ libvirt_virSecretPtrWrap(virSecretPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virSecretPtr", NULL);
@@ -531,8 +532,7 @@ libvirt_virNWFilterPtrWrap(virNWFilterPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virNWFilterPtr", NULL);
@@ -545,8 +545,7 @@ libvirt_virStreamPtrWrap(virStreamPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virStreamPtr", NULL);
@@ -559,8 +558,7 @@ libvirt_virDomainSnapshotPtrWrap(virDomainSnapshotPtr node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virDomainSnapshotPtr", NULL);
@@ -573,9 +571,8 @@ libvirt_virEventHandleCallbackWrap(virEventHandleCallback node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
         printf("%s: WARNING - Wrapping None\n", __func__);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virEventHandleCallback", NULL);
@@ -589,8 +586,7 @@ libvirt_virEventTimeoutCallbackWrap(virEventTimeoutCallback node)
 
     if (node == NULL) {
         printf("%s: WARNING - Wrapping None\n", __func__);
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virEventTimeoutCallback", NULL);
@@ -603,8 +599,7 @@ libvirt_virFreeCallbackWrap(virFreeCallback node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "virFreeCallback", NULL);
@@ -617,8 +612,7 @@ libvirt_virVoidPtrWrap(void* node)
     PyObject *ret;
 
     if (node == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        return VIR_PY_NONE;
     }
 
     ret = libvirt_buildPyObject(node, "void*", NULL);

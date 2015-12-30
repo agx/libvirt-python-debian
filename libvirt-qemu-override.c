@@ -41,18 +41,11 @@ extern void initcygvirtmod_qemu(void);
 
 #if DEBUG_ERROR
 # define DEBUG(fmt, ...)            \
-   printf(fmt, __VA_ARGS__)
+    printf(fmt, __VA_ARGS__)
 #else
 # define DEBUG(fmt, ...)            \
-   do {} while (0)
+    do {} while (0)
 #endif
-
-/* The two-statement sequence "Py_INCREF(Py_None); return Py_None;"
-   is so common that we encapsulate it here.  Now, each use is simply
-   return VIR_PY_NONE;  */
-#define VIR_PY_NONE (Py_INCREF (Py_None), Py_None)
-#define VIR_PY_INT_FAIL (libvirt_intWrap(-1))
-#define VIR_PY_INT_SUCCESS (libvirt_intWrap(0))
 
 /*******************************************
  * Helper functions to avoid importing modules
@@ -132,7 +125,8 @@ libvirt_qemu_lookupPythonFunc(const char *funcname)
 
 static PyObject *
 libvirt_qemu_virDomainQemuMonitorCommand(PyObject *self ATTRIBUTE_UNUSED,
-                                    PyObject *args) {
+                                         PyObject *args)
+{
     PyObject *py_retval;
     char *result = NULL;
     virDomainPtr domain;
@@ -162,7 +156,8 @@ libvirt_qemu_virDomainQemuMonitorCommand(PyObject *self ATTRIBUTE_UNUSED,
 
 #if LIBVIR_CHECK_VERSION(0, 10, 0)
 static PyObject *
-libvirt_qemu_virDomainQemuAgentCommand(PyObject *self ATTRIBUTE_UNUSED, PyObject *args)
+libvirt_qemu_virDomainQemuAgentCommand(PyObject *self ATTRIBUTE_UNUSED,
+                                       PyObject *args)
 {
     PyObject *py_retval;
     char *result = NULL;
@@ -248,7 +243,7 @@ libvirt_qemu_virConnectDomainQemuMonitorEventCallback(virConnectPtr conn ATTRIBU
     Py_DECREF(pyobj_cbData);
     Py_DECREF(pyobj_dom);
 
-cleanup:
+ cleanup:
     if (!pyobj_ret) {
         DEBUG("%s - ret:%p\n", __FUNCTION__, pyobj_ret);
         PyErr_Print();
@@ -275,12 +270,9 @@ libvirt_qemu_virConnectDomainQemuMonitorEventRegister(PyObject *self ATTRIBUTE_U
     virDomainPtr dom;
     unsigned int flags;
 
-    if (!PyArg_ParseTuple
-        (args, (char *) "OOzOI",
-         &pyobj_conn, &pyobj_dom, &event, &pyobj_cbData, &flags)) {
-        DEBUG("%s failed parsing tuple\n", __FUNCTION__);
-        return VIR_PY_INT_FAIL;
-    }
+    if (!PyArg_ParseTuple(args, (char *) "OOzOI", &pyobj_conn, &pyobj_dom,
+                          &event, &pyobj_cbData, &flags))
+        return NULL;
 
     DEBUG("libvirt_qemu_virConnectDomainQemuMonitorEventRegister(%p %p %s %p %x) called\n",
           pyobj_conn, pyobj_dom, NULLSTR(event), pyobj_cbData, flags);
@@ -320,9 +312,9 @@ libvirt_qemu_virConnectDomainQemuMonitorEventDeregister(PyObject *self ATTRIBUTE
     virConnectPtr conn;
     int ret = 0;
 
-    if (!PyArg_ParseTuple
-        (args, (char *) "Oi:virConnectDomainQemuMonitorEventDeregister",
-         &pyobj_conn, &callbackID))
+    if (!PyArg_ParseTuple(args,
+                          (char *) "Oi:virConnectDomainQemuMonitorEventDeregister",
+                          &pyobj_conn, &callbackID))
         return NULL;
 
     DEBUG("libvirt_qemu_virConnectDomainQemuMonitorEventDeregister(%p) called\n",
@@ -360,19 +352,19 @@ static PyMethodDef libvirtQemuMethods[] = {
 
 #if PY_MAJOR_VERSION > 2
 static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
+    PyModuleDef_HEAD_INIT,
 # ifndef __CYGWIN__
-        "libvirtmod_qemu",
+    "libvirtmod_qemu",
 # else
-        "cygvirtmod_qemu",
+    "cygvirtmod_qemu",
 # endif
-        NULL,
-        -1,
-        libvirtQemuMethods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
+    NULL,
+    -1,
+    libvirtQemuMethods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
 
 PyObject *
@@ -381,7 +373,7 @@ PyInit_libvirtmod_qemu
 # else
 PyInit_cygvirtmod_qemu
 # endif
-  (void)
+(void)
 {
     PyObject *module;
 
@@ -399,7 +391,7 @@ initlibvirtmod_qemu
 # else
 initcygvirtmod_qemu
 # endif
-  (void)
+(void)
 {
     if (virInitialize() < 0)
         return;
@@ -411,6 +403,6 @@ initcygvirtmod_qemu
 # else
                   "cygvirtmod_qemu",
 # endif
-		  libvirtQemuMethods);
+                  libvirtQemuMethods);
 }
 #endif /* ! PY_MAJOR_VERSION > 2 */
