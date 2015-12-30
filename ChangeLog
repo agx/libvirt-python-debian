@@ -1,3 +1,220 @@
+2015-11-24 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Post-release version bump to 1.3.0
+    
+    
+2015-10-31 Pavel Hrdina  <phrdina@redhat.com>
+    
+    fix crash introduced by commit 1d39dbaf
+    Some of the libvirt_*Wrap functions steals the reference and we need to
+    set the item in array to NULL no not free it on success.  Those three
+    places was accidentally removed by commit 1d39dbaf.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1270977
+    
+    
+    
+2015-10-15 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Post-release version bump to 1.2.21
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    use VIR_PY_DICT_SET_GOTO
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    use VYR_PY_LIST_SET_GOTO and VIR_PY_LIST_APPEND_GOTO
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    use VIR_PY_TUPLE_GOTO
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    utils: introduce new macro helpers for tuple, list and dict objects
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    improve usage of cleanup paths
+    This removes several code duplicates and also some unusual code structures.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    drop unnecessary py_retval variable
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    change the order of some statements
+    This change makes it easier to free allocated object especially for
+    python objects.  We can benefit from the fact, that if you call
+    Py_DECREF on any python object it will also remove reference for all
+    assigned object to the root object.  For example, calling Py_DECREF on
+    dict will also remove reference recursively on all elements in that
+    dictionary.  Our job is then just call Py_DECREF on the root element and
+    don't care about anything else.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Must check return value for all Py*_New functions
+    If the function fails, we need to cleanup memory and return NULL.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    use Py_CLEAR instead of Py_XDECREF followed by NULL assignment
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Use VIR_PY_NONE instead of increment and Py_None
+    To insert Py_None into some other python object like dict or tuple, you
+    need to increase reference to the Py_None.  We have a macro to do that.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Return NULL and set an exception if allocation fails
+    This is a recommended work-flow for allocation failures and we should
+    follow it.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Return correct python object
+    In case of error without setting an python exception we need to return
+    a correct python object.  For functions that returns anything else than
+    a number the return value is 'None', otherwise it's '-1'.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Return NULL if python exception is set
+    There is a rule, python API fails, it also in those cases sets an
+    exception.  We should follow those rules and in those cases return NULL.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    wrap lines to 80 columns
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    fix indentation
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    indent labels by one space
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    cleanup functions definition
+    Follow the libvirt hacking guide and make the code consistent.
+    
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Move utils and shared code into libvirt-utils
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    drop unnecessary goto
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    remove useless check for NULL before Py_XDECREF
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    refactor the function to not override python exceptions
+    
+    
+2015-10-05 Pavel Hrdina  <phrdina@redhat.com>
+    
+    update virDomainGetVcpus xml API description
+    Python api returns a tuple with the vcpus information.
+    
+    
+    
+2015-10-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-1.2.20
+    
+    
+2015-09-21 Luyao Huang  <lhuang@redhat.com>
+    
+    generator: fix build fail with old xml lib
+    https://bugzilla.redhat.com/show_bug.cgi?id=1222795#c6
+    
+    if build libvirt-python with some old xml lib (python-pyxml),
+    build will fail and error like this:
+    
+    File "generator.py", line 139, in start
+    if "string" in attrs:
+    File "/usr/local/lib/python2.7/site-packages/_xmlplus/sax/xmlreader.py" \
+    , line 316, in __getitem__
+    return self._attrs[name]
+    KeyError: 0
+    
+    This is an old issue and have been mentioned in commit 3ae0a76d.
+    There is no __contains__ in class AttributesImpl, python will use
+    __getitem__ in this place, so we will get error.
+    Let's use 'YYY in XXX.keys()' to avoid this issue.
+    
+    
+    
+2015-08-26 Luyao Huang  <lhuang@redhat.com>
+    
+    examples: small fix for nodestats.py example
+    Add nodestats.py in MANIFEST.in and add a
+    small description for nodestats.py in README
+    
+    
+    
+2015-08-03 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Check return value of PyList_Append
+    libvirt_virDomainGetSecurityLabelList called PyList_Append without
+    checking its return value. While looking at it I noticed the function
+    did not properly check several other return values either so I fixed
+    them all.
+    
+    https://bugzilla.redhat.com/show_bug.cgi?id=1249511
+    
+    
+    
+2015-08-03 Jiri Denemark  <jdenemar@redhat.com>
+    
+    Post-release version bump to 1.2.19
+    
+    
+2015-08-03 Daniel Veillard  <veillard@redhat.com>
+    
+    Forgot to bump version to 1.2.18
+    
+    
 2015-07-30 Peter Krempa  <pkrempa@redhat.com>
     
     iothread: Fix crash if virDomainGetIOThreadInfo returns error

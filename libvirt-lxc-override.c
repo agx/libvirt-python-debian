@@ -41,18 +41,11 @@ extern void initcygvirtmod_lxc(void);
 
 #if DEBUG_ERROR
 # define DEBUG(fmt, ...)            \
-   printf(fmt, __VA_ARGS__)
+    printf(fmt, __VA_ARGS__)
 #else
 # define DEBUG(fmt, ...)            \
-   do {} while (0)
+    do {} while (0)
 #endif
-
-/* The two-statement sequence "Py_INCREF(Py_None); return Py_None;"
-   is so common that we encapsulate it here.  Now, each use is simply
-   return VIR_PY_NONE;  */
-#define VIR_PY_NONE (Py_INCREF (Py_None), Py_None)
-#define VIR_PY_INT_FAIL (libvirt_intWrap(-1))
-#define VIR_PY_INT_SUCCESS (libvirt_intWrap(0))
 
 /************************************************************************
  *									*
@@ -62,7 +55,8 @@ extern void initcygvirtmod_lxc(void);
 
 static PyObject *
 libvirt_lxc_virDomainLxcOpenNamespace(PyObject *self ATTRIBUTE_UNUSED,
-                                      PyObject *args) {
+                                      PyObject *args)
+{
     PyObject *py_retval;
     virDomainPtr domain;
     PyObject *pyobj_domain;
@@ -85,27 +79,22 @@ libvirt_lxc_virDomainLxcOpenNamespace(PyObject *self ATTRIBUTE_UNUSED,
     if (c_retval < 0)
         return VIR_PY_NONE;
 
-    py_retval = PyList_New(0);
-    for (i = 0; i < c_retval; i++) {
-        PyObject *item = NULL;
+    if ((py_retval = PyList_New(0)) == NULL)
+        goto error;
 
-        if ((item = libvirt_intWrap(fdlist[i])) == NULL)
-            goto error;
+    for (i = 0; i < c_retval; i++)
+        VIR_PY_LIST_APPEND_GOTO(py_retval, libvirt_intWrap(fdlist[1]), error);
 
-        if (PyList_Append(py_retval, item) < 0) {
-            Py_DECREF(item);
-            goto error;
-        }
-    }
+ cleanup:
     VIR_FREE(fdlist);
     return py_retval;
 
-error:
+ error:
     for (i = 0; i < c_retval; i++) {
         VIR_FORCE_CLOSE(fdlist[i]);
     }
-    VIR_FREE(fdlist);
-    return VIR_PY_NONE;
+    Py_CLEAR(py_retval);
+    goto cleanup;
 }
 /************************************************************************
  *									*
@@ -120,19 +109,19 @@ static PyMethodDef libvirtLxcMethods[] = {
 
 #if PY_MAJOR_VERSION > 2
 static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
+    PyModuleDef_HEAD_INIT,
 # ifndef __CYGWIN__
-        "libvirtmod_lxc",
+    "libvirtmod_lxc",
 # else
-        "cygvirtmod_lxc",
+    "cygvirtmod_lxc",
 # endif
-        NULL,
-        -1,
-        libvirtLxcMethods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
+    NULL,
+    -1,
+    libvirtLxcMethods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
 
 PyObject *
@@ -141,7 +130,7 @@ PyInit_libvirtmod_lxc
 # else
 PyInit_cygvirtmod_lxc
 # endif
-  (void)
+(void)
 {
     PyObject *module;
 
@@ -159,7 +148,7 @@ initlibvirtmod_lxc
 # else
 initcygvirtmod_lxc
 # endif
-  (void)
+(void)
 {
     if (virInitialize() < 0)
         return;
@@ -171,6 +160,6 @@ initcygvirtmod_lxc
 # else
                   "cygvirtmod_lxc",
 # endif
-		  libvirtLxcMethods);
+                  libvirtLxcMethods);
 }
 #endif /* ! PY_MAJOR_VERSION > 2 */
