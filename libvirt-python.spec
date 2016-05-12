@@ -6,7 +6,7 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 1.3.3
+Version: 1.3.4
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
@@ -48,6 +48,11 @@ of recent versions of Linux (and other OSes).
 
 %prep
 %setup -q
+
+# Unset execute bit for example scripts; it can introduce spurious
+# RPM dependencies, like /usr/bin/python which can pull in python2
+# for the -python3 package
+find examples -type f -exec chmod 0644 \{\} \;
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
