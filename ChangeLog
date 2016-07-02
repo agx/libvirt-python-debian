@@ -1,3 +1,44 @@
+2016-06-24 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add support for storage pool refesh callback
+    
+    
+2016-06-24 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix signedness of arg to virDomainGetGuestVcpus
+    
+    
+2016-06-23 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Add support for virDomainGetGuestVcpus
+    This function has virTypedParameterPtr as one of the args and our
+    generator is unable to deal with that. Therefore we must provide
+    implementation.
+    
+    
+    
+2016-06-16 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    event-test: Add storage pool lifecycle event tests
+    
+    
+2016-06-16 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    Python binding for storage pool lifecycle events API
+    Code matches the network event API implementation
+    
+    
+2016-06-14 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Post-release version bump to 2.0.0
+    
+    
+2016-06-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-1.3.5
+    * setup.py: bumped to 1.3.5, the release is virtually identical to 1.3.4
+    
+    
 2016-04-21 Peter Krempa  <pkrempa@redhat.com>
     
     generator.py: Consider symbols from libvirt-common
