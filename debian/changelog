@@ -1,3 +1,10 @@
+libvirt-python (2.0.0-1) unstable; urgency=medium
+
+  * [024ecc0] New upstream version 2.0.0
+  * [c683d47] watch: Validate gpg signatures
+
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 02 Jul 2016 15:19:11 +0200
+
 libvirt-python (1.3.5-1) unstable; urgency=medium
 
   * [d8d81ed] New upstream version 1.3.5
