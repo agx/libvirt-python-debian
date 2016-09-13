@@ -580,8 +580,25 @@ def myStoragePoolEventLifecycleCallback(conn, pool, event, detail, opaque):
                                                                           storageEventToString(event),
                                                                           detail))
 
-def myStoragePoolEventRefreshCallback(conn, pool, event, detail, opaque):
+def myStoragePoolEventRefreshCallback(conn, pool, opaque):
     print("myStoragePoolEventRefreshCallback: Storage pool %s" % pool.name())
+
+##########################################################################
+# Node device events
+##########################################################################
+def nodeDeviceEventToString(event):
+    nodeDeviceEventStrings = ( "Created",
+                               "Deleted",
+    )
+    return nodeDeviceEventStrings[event]
+
+def myNodeDeviceEventLifecycleCallback(conn, dev, event, detail, opaque):
+    print("myNodeDeviceEventLifecycleCallback: Node device  %s %s %d" % (dev.name(),
+                                                                          nodeDeviceEventToString(event),
+                                                                          detail))
+
+def myNodeDeviceEventUpdateCallback(conn, dev, opaque):
+    print("myNodeDeviceEventUpdateCallback: Node device %s" % dev.name())
 
 ##########################################################################
 # Set up and run the program
@@ -677,6 +694,9 @@ def main():
 
     vc.storagePoolEventRegisterAny(None, libvirt.VIR_STORAGE_POOL_EVENT_ID_LIFECYCLE, myStoragePoolEventLifecycleCallback, None)
     vc.storagePoolEventRegisterAny(None, libvirt.VIR_STORAGE_POOL_EVENT_ID_REFRESH, myStoragePoolEventRefreshCallback, None)
+
+    vc.nodeDeviceEventRegisterAny(None, libvirt.VIR_NODE_DEVICE_EVENT_ID_LIFECYCLE, myNodeDeviceEventLifecycleCallback, None)
+    vc.nodeDeviceEventRegisterAny(None, libvirt.VIR_NODE_DEVICE_EVENT_ID_UPDATE, myNodeDeviceEventUpdateCallback, None)
 
     vc.setKeepAlive(5, 3)
 

@@ -1,3 +1,59 @@
+2016-08-24 Michal Privoznik  <mprivozn@redhat.com>
+    
+    PyArg_ParseTuple: Provide correct function names
+    At the end of the format string we put :virFunctionName where ':'
+    says "this is the end of argument list", and virFunctionName is
+    the prefix for error messages then.  However, in some cases we
+    have had wrong names there. Some of them are actually quite
+    funny: xmlRegisterErrorHandler.
+    
+    
+    
+2016-08-17 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    event-test: support node device update callback
+    
+    
+2016-08-17 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    Add support for node device update callback
+    
+    
+2016-08-02 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    event-test: Add node device lifecycle event tests
+    
+    
+2016-08-02 Jovanka Gulicoska  <jovanka.gulicoska@gmail.com>
+    
+    Python binding for node poll lifecycle events API
+    
+    
+2016-08-02 Cole Robinson  <crobinso@redhat.com>
+    
+    Post-release version bump to 2.2.0
+    
+    
+2016-07-28 Markus Rothe  <markusr815@gmail.com>
+    
+    allow pkg-config binary to be set by env
+    https://bugzilla.redhat.com/show_bug.cgi?id=1350523
+    
+    
+2016-07-25 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Post-release version bump to 2.1.0
+    
+    
+2016-07-23 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Fix crash in storage pool refresh callback
+    Fixes copy-paste typo introduced by commit cb84e36c.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1354271
+    
+    
+    
 2016-06-24 Daniel P. Berrange  <berrange@redhat.com>
     
     Add support for storage pool refesh callback
