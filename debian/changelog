@@ -1,3 +1,9 @@
+libvirt-python (2.2.0-1) unstable; urgency=medium
+
+  * [75b3f0f] New upstream version 2.2.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 13 Sep 2016 07:33:59 +0200
+
 libvirt-python (2.0.0-1) unstable; urgency=medium
 
   * [024ecc0] New upstream version 2.0.0
