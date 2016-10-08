@@ -1,3 +1,28 @@
+2016-09-19 Peter Krempa  <pkrempa@redhat.com>
+    
+    override: Properly override wrapper for virDomainGetGuestVcpus
+    Without the change to libvirt-override-api.xml generator.py would
+    generate the following function header:
+    
+    def guestVcpus(self, params, nparams, flags=0):
+    
+    Since @params and @nparams are output-only in C and the python C
+    implementation actualy creates a dict from them we should not need to
+    pass them. Add the API definition to drop the two unnecessary args:
+    
+    def guestVcpus(self, flags=0):
+    
+    The code did not work at all until this change as the C impl expects
+    only two arguments but the python required use of four.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1377071
+    
+    
+2016-09-19 Peter Krempa  <pkrempa@redhat.com>
+    
+    Post-release version bump to 2.3.0
+    
+    
 2016-08-24 Michal Privoznik  <mprivozn@redhat.com>
     
     PyArg_ParseTuple: Provide correct function names
