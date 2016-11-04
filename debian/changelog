@@ -1,3 +1,11 @@
+libvirt-python (2.4.0-1) unstable; urgency=medium
+
+  * [4926be2] New upstream version 2.4.0
+  * [e94887f] Use https VCS URLs
+  * [71e37b8] Bump standards version
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 04 Nov 2016 19:38:15 +0100
+
 libvirt-python (2.3.0-1) unstable; urgency=medium
 
   * [54b8992] New upstream version 2.3.0
