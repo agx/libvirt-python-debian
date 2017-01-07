@@ -1,3 +1,35 @@
+2016-11-11 Konstantin Neumoin  <kneumoin@virtuozzo.com>
+    
+    don't overrun buffer when converting cpumap
+    If we pass large(more than cpunum) cpu mask to any libvirt_virDomainPin*
+    function, it could leads to crash. So we have to check tuple size in
+    virPyCpumapConvert and ignore extra tuple members.
+    
+    Since we allocate a zeroed buffer, we don't need to bother with setting
+    the bits to zero.
+    
+    
+    
+2016-11-11 Konstantin Neumoin  <kneumoin@virtuozzo.com>
+    
+    move cpumap conversion code to a common helper
+    All libvirt_virDomainPin* functions do the same thing for convert
+    pycpumap to cpumap, so this patch moves all common logic to new
+    helper - virPyCpumapConvert.
+    
+    
+    
+2016-11-02 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Post-release version bump to 2.5.0
+    
+    
+2016-11-01 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-2.4.0
+    * setup.py: just bumped up the release number
+    
+    
 2016-09-19 Peter Krempa  <pkrempa@redhat.com>
     
     override: Properly override wrapper for virDomainGetGuestVcpus
