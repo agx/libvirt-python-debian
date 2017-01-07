@@ -1,3 +1,11 @@
+libvirt-python (2.5.0-1) unstable; urgency=medium
+
+  * [db83231] gbp.conf: switch upstream branch to upstream/latest
+  * [734ef76] New upstream version 2.5.0
+  * [0fdff52] Require recent libvirt
+
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 07 Jan 2017 17:35:35 +0100
+
 libvirt-python (2.4.0-1) unstable; urgency=medium
 
   * [4926be2] New upstream version 2.4.0
