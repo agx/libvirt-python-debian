@@ -1,10 +1,8 @@
-libvirt-python (3.0.0-1~1.gbp8e914b) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @8e914bbe2bb3516158a410c990aab37fd013f6a5 **
+libvirt-python (3.0.0-1) experimental; urgency=medium
 
   * [f12a61d] New upstream version 3.0.0
 
- -- Guido Günther <agx@sigxcpu.org>  Thu, 19 Jan 2017 20:01:48 +0100
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 19 Jan 2017 20:08:56 +0100
 
 libvirt-python (2.5.0-1) unstable; urgency=medium
 
