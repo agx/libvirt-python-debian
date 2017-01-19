@@ -1,3 +1,11 @@
+libvirt-python (3.0.0-1~1.gbp8e914b) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @8e914bbe2bb3516158a410c990aab37fd013f6a5 **
+
+  * [f12a61d] New upstream version 3.0.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 19 Jan 2017 20:01:48 +0100
+
 libvirt-python (2.5.0-1) unstable; urgency=medium
 
   * [db83231] gbp.conf: switch upstream branch to upstream/latest

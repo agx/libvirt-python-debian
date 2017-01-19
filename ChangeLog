@@ -1,3 +1,64 @@
+2017-01-10 Michal Privoznik  <mprivozn@redhat.com>
+    
+    examples: Update event-test.py
+    With recent changes there are new events known to libvirt.
+    Reflect those changes in our event-test.py example script.
+    
+    
+    
+2017-01-10 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix typos in previous secrets event patch
+    
+    
+2017-01-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add support for domain metadata change event
+    
+    
+2017-01-09 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add support for secret event APIs
+    
+    
+2016-12-21 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add override impl for virStorageVolGetInfoFlags
+    
+    
+2016-12-21 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Remove bogus \o escape in regex
+    One of the regexes has a bogus \o instead of plain 'o'. Somehow
+    this magically worked on all versions of python, until 3.6 came
+    along and complained
+    
+    
+    
+2016-12-14 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix running of nosetests on python 3
+    Previously the way Fedora installed /usr/bin/nosetests allowed it
+    to be invoked with either python 2 or 3. Since Fedora 25 though,
+    it contains a module name that only exists on python 2. So we need
+    to be more intelligent and pick a different nosetests binary per
+    version.
+    
+    
+    
+2016-12-13 Prabodh Agarwal  <prabodh1194@users.noreply.github.com>
+    
+    HACKING: fix grammar
+    
+    
+2016-12-05 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fill out more fields for PKG-INFO file
+    Ensure the description and license are set in PKG-INFO,
+    and clarify the summary field.
+    
+    
+    
 2016-11-11 Konstantin Neumoin  <kneumoin@virtuozzo.com>
     
     don't overrun buffer when converting cpumap
