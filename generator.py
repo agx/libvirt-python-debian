@@ -455,6 +455,7 @@ skip_impl = (
     'virStoragePoolLookupByUUID',
     'virStoragePoolGetInfo',
     'virStorageVolGetInfo',
+    'virStorageVolGetInfoFlags',
     'virStoragePoolGetAutostart',
     'virStoragePoolListVolumes',
     'virDomainBlockPeek',
@@ -527,6 +528,8 @@ skip_function = (
     'virConnectStoragePoolEventDeregisterAny', # overridden in virConnect.py
     'virConnectNodeDeviceEventRegisterAny',   # overridden in virConnect.py
     'virConnectNodeDeviceEventDeregisterAny', # overridden in virConnect.py
+    'virConnectSecretEventRegisterAny',   # overridden in virConnect.py
+    'virConnectSecretEventDeregisterAny', # overridden in virConnect.py
     'virSaveLastError', # We have our own python error wrapper
     'virFreeError', # Only needed if we use virSaveLastError
     'virConnectListAllDomains', # overridden in virConnect.py
@@ -1091,7 +1094,7 @@ def is_integral_type (name):
     return not re.search ("^(unsigned)? ?(int|long)$", name) is None
 
 def is_optional_arg(info):
-    return re.search("^\(?\optional\)?", info) is not None
+    return re.search("^\(?optional\)?", info) is not None
 # Functions returning lists which need special rules to check for errors
 # and raise exceptions.
 functions_list_exception_test = {
