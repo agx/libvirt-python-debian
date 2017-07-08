@@ -6,7 +6,7 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 3.0.0
+Version: 3.5.0
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
@@ -65,7 +65,6 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
 %if %{with_python3}
 %{__python3} setup.py install --skip-build --root=%{buildroot}
 %endif
-rm -f %{buildroot}%{_libdir}/python*/site-packages/*egg-info
 
 %check
 %{__python} setup.py test
@@ -80,18 +79,22 @@ rm -f %{buildroot}%{_libdir}/python*/site-packages/*egg-info
 %{_libdir}/python2*/site-packages/libvirt_qemu.py*
 %{_libdir}/python2*/site-packages/libvirt_lxc.py*
 %{_libdir}/python2*/site-packages/libvirtmod*
+%{_libdir}/python2*/site-packages/*egg-info
 
 %if %{with_python3}
 %files -n libvirt-python3
 %defattr(-,root,root)
 %doc ChangeLog AUTHORS NEWS README COPYING COPYING.LESSER examples/
 %{_libdir}/python3*/site-packages/libvirt.py*
+%{_libdir}/python3*/site-packages/libvirtaio.py*
 %{_libdir}/python3*/site-packages/libvirt_qemu.py*
 %{_libdir}/python3*/site-packages/libvirt_lxc.py*
 %{_libdir}/python3*/site-packages/__pycache__/libvirt.cpython-*.py*
 %{_libdir}/python3*/site-packages/__pycache__/libvirt_qemu.cpython-*.py*
 %{_libdir}/python3*/site-packages/__pycache__/libvirt_lxc.cpython-*.py*
+%{_libdir}/python3*/site-packages/__pycache__/libvirtaio.cpython-*.py*
 %{_libdir}/python3*/site-packages/libvirtmod*
+%{_libdir}/python3*/site-packages/*egg-info
 %endif
 
 %changelog

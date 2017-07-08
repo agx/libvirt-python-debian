@@ -1,3 +1,280 @@
+2017-06-20 Martin Kletzander  <mkletzan@redhat.com>
+    
+    Add details for shutdown event
+    In commit a8eba5036cb4b0e2ec827e9e6e019ce70e451377, libvirt added
+    support for two more details.  In python bindings it all worked fine
+    automagically except an example that was not updated.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1463188
+    
+    
+    
+2017-06-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.4.0
+    
+    
+2017-05-24 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix error check for virDomainGetTime method
+    The virDomainGetTime returns either a dict or None, but the python
+    glue layer for checking for '-1'. Thus it failed to raise an
+    exception on error.
+    
+    
+    
+2017-05-24 Michal Privoznik  <mprivozn@redhat.com>
+    
+    examples: Introduce sparsestream.py
+    Sparse streams are not that straight forward to use for the very
+    first time. Especially the sparseRecvAll() and sparseSendAll()
+    methods which expects callbacks. What we can do to make it easier
+    for developers is to have an example where they can take an
+    inspiration from.
+    
+    
+    
+2017-05-24 Michal Privoznik  <mprivozn@redhat.com>
+    
+    virStream: Introduce virStreamSparse{Recv,Send}All
+    Yet again, our parser is not capable of generating proper
+    wrapper. To be fair, this one wold be really tough anyway.
+    
+    
+    
+2017-05-23 Michal Privoznik  <mprivozn@redhat.com>
+    
+    virStream: Introduce virStreamRecvFlags
+    Yet again, we need a custom wrapper over virStreamRecvFlags
+    because our generator is not capable of generating it.
+    
+    
+    
+2017-05-23 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Implement virStreamSendHole/virStreamRecvHole
+    The return value for virStreamRecvHole is slightly different to
+    its C counterpart. In python, either it returns the hole size or
+    None if C API fails.
+    
+    
+    
+2017-05-17 Xavier Fernandez  <xav.fernandez@gmail.com>
+    
+    Use better comparison in virStream.sendAll for Python 3
+    In Python 3, if the file is open in binary mode, @got will end up
+    being equal to b"" and b"" != "" in Python 3.
+    
+    
+2017-05-15 Martin Kletzander  <mkletzan@redhat.com>
+    
+    spec: Install egg-info with rpm package
+    This was being done due to now deprecated policy and that file should
+    be installed so that pip can recognize that the packages is already
+    installed in the system.
+    
+    
+    
+2017-05-05 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.3.0
+    
+    
+2017-04-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    event-test: add ability to run the asyncio event loop
+    The event test program '--loop' arg is modified to take the name
+    of an event loop impl to run. eg 'event-test.py --loop asyncio'
+    
+    
+    
+2017-04-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    event-test: rename example event loop impl
+    Use the name 'Poll' instead of 'Pure' for the event loop demo,
+    since there's now a second pure python loop impl available.
+    
+    
+    
+2017-04-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    event-test: unregister callbacks & close conn on exit
+    In order to test cleanup code paths we must unregister all callbacks
+    and close the connection on shutdown. Since cleanup happens in the
+    background, we do a short sleep to allow the main loop to run its
+    cleanup too.
+    
+    
+    
+2017-04-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    event-test: add timeout to exit event loop
+    
+    
+2017-04-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    event-test: free opaque data when removing callbacks
+    The pure python event loop impl has to call
+    
+    libvirt.virEventInvokeFreeCallback
+    
+    to free the event opaque data from a clean stack context
+    
+    
+    
+2017-04-04 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    Add asyncio event loop implementation
+    This is usable only on python >= 3.4 (or 3.3 with out-of-tree asyncio),
+    however it should be harmless for anyone with older python versions.
+    
+    In simplest case, to have the callbacks queued on the default loop:
+    
+    >>> import libvirtaio
+    >>> libvirtaio.virEventRegisterAsyncIOImpl()
+    
+    The function is not present on non-compatible platforms.
+    
+    
+    
+2017-04-04 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    Allow for ff callbacks to be called by custom event implementations
+    The documentation says:
+    > If the opaque user data requires free'ing when the handle is
+    > unregistered, then a 2nd callback can be supplied for this purpose.
+    > This callback needs to be invoked from a clean stack. If 'ff'
+    > callbacks are invoked directly from the virEventRemoveHandleFunc they
+    > will likely deadlock in libvirt.
+    
+    And they did deadlock. In removeTimeout too. Now we supply a custom
+    function to pick it from the opaque blob and fire.
+    
+    
+    
+2017-04-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.2.0
+    * setup.py: bumped version
+    
+    
+2017-03-29 Peter Krempa  <pkrempa@redhat.com>
+    
+    event: Add handler for block threshold event
+    Unfortunately python doesn't generate those.
+    
+    
+2017-03-29 Peter Krempa  <pkrempa@redhat.com>
+    
+    event: fix comment for _dispatchDomainEventMetadataChangeCallback
+    The comment was copied from the device removal failed event.
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'functions_list_exception_test' code from generator
+    The 'functions_list_exception_test' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'converter_type' code from generator
+    The 'converter_type' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'classes_ancestor' code from generator
+    The 'classes_ancestor' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'py_return_types' code from generator
+    The 'py_return_types' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'foreign_encoding_args' code from generator
+    The 'foreign_encoding_args' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'function_post' code from generator
+    The 'function_post' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Removed unused 'reference_keepers' code from generator
+    The 'reference_keepers' data structure and associated code
+    in the generator is inherited from libxml. This has never
+    been used in libvirt, so delete it to simplify the generator.
+    
+    
+    
+2017-01-27 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Protect against user accidentally calling constructors directly
+    When using libvirt python you must never call the object
+    constructors directly, as these are expecting to be passed
+    a wrapped C object. For example
+    
+    import libvirt
+    c = libvirt.virConnect("qemu:///system")
+    c.listAllDomains()
+    
+    will mysteriously segfault. With this change the user now
+    gets an slightly more helpful error
+    
+    Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "/home/berrange/src/virt/libvirt-python/build/libvirt.py", line 3409, in __init__
+    raise Exception("Expected a wrapped C Object but got %s" % type(_obj))
+    Exception: Expected a wrapped C Object but got <type 'str'>
+    
+    
+    
+2017-01-18 Wu Zongyong  <wuzongyo@mail.ustc.edu.cn>
+    
+    Fix the incorrect memory freeing which will result in crash
+    Commit id '71fd95409' neglected to adjust a couple of API's do that now.
+    
+    The number of elements in new_params is equal to the length of info,
+    instead of nparams, so it's wrong to free new_params using nparams.
+    
+    
+    
+2017-01-18 John Ferlan  <jferlan@redhat.com>
+    
+    Post-release version bump to 3.1.0
+    
+    
+2017-01-17 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.0.0
+    
+    
 2017-01-10 Michal Privoznik  <mprivozn@redhat.com>
     
     examples: Update event-test.py
