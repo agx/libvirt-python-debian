@@ -1,11 +1,9 @@
-libvirt-python (3.5.0-1~1.gbp04643a) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @04643a4a32b5cb31185f23c8e051a148be625b23 **
+libvirt-python (3.5.0-1) unstable; urgency=medium
 
   * [52a4687] Update upstream pgp key
-  * [a42ff89] New upstream version 3.5.0
+  * [a42ff89] New upstream version 3.5.0 (Closes: #867691)
 
- -- Guido Günther <agx@sigxcpu.org>  Sat, 08 Jul 2017 19:49:14 +0200
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 08 Jul 2017 19:58:21 +0200
 
 libvirt-python (3.0.0-2) unstable; urgency=medium
 
