@@ -244,12 +244,21 @@
         return 0
 
     def _dispatchDomainEventMetadataChangeCallback(self, dom, mtype, nsuri, cbData):
-        """Dispatches event to python user domain device removal failed event callbacks
+        """Dispatches event to python user domain metadata change event callbacks
         """
         cb = cbData["cb"]
         opaque = cbData["opaque"]
 
         cb(self, virDomain(self, _obj=dom), mtype, nsuri, opaque)
+        return 0
+
+    def _dispatchDomainEventBlockThresholdCallback(self, dom, dev, path, threshold, excess, cbData):
+        """Dispatches event to python user domain block device threshold event callbacks
+        """
+        cb = cbData["cb"]
+        opaque = cbData["opaque"]
+
+        cb(self, virDomain(self, _obj=dom), dev, path, threshold, excess, opaque)
         return 0
 
     def domainEventDeregisterAny(self, callbackID):

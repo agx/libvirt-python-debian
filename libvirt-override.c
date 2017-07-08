@@ -632,7 +632,7 @@ libvirt_virDomainSetSchedulerParametersFlags(PyObject *self ATTRIBUTE_UNUSED,
     int nparams = 0;
     Py_ssize_t size = 0;
     unsigned int flags;
-    virTypedParameterPtr params, new_params = NULL;
+    virTypedParameterPtr params = NULL, new_params = NULL;
 
     if (!PyArg_ParseTuple(args,
                           (char *)"OOI:virDomainSetScedulerParametersFlags",
@@ -694,7 +694,7 @@ libvirt_virDomainSetSchedulerParametersFlags(PyObject *self ATTRIBUTE_UNUSED,
 
  cleanup:
     virTypedParamsFree(params, nparams);
-    virTypedParamsFree(new_params, nparams);
+    virTypedParamsFree(new_params, size);
     return ret;
 }
 
@@ -5223,6 +5223,9 @@ libvirt_virEventAddHandleFunc(int fd,
 
     VIR_PY_TUPLE_SET_GOTO(pyobj_args, 3, cb_args, cleanup);
 
+    /* If changing contents of the opaque object, please also change
+     * virEventInvokeFreeCallback() in libvirt-override.py
+     */
     VIR_PY_TUPLE_SET_GOTO(cb_args, 0, libvirt_virEventHandleCallbackWrap(cb), cleanup);
     VIR_PY_TUPLE_SET_GOTO(cb_args, 1, libvirt_virVoidPtrWrap(opaque), cleanup);
     VIR_PY_TUPLE_SET_GOTO(cb_args, 2, libvirt_virFreeCallbackWrap(ff), cleanup);
@@ -5279,10 +5282,7 @@ libvirt_virEventRemoveHandleFunc(int watch)
 {
     PyObject *result = NULL;
     PyObject *pyobj_args;
-    PyObject *opaque;
-    PyObject *ff;
     int retval = -1;
-    virFreeCallback cff;
 
     LIBVIRT_ENSURE_THREAD_STATE;
 
@@ -5292,20 +5292,11 @@ libvirt_virEventRemoveHandleFunc(int watch)
     VIR_PY_TUPLE_SET_GOTO(pyobj_args, 0, libvirt_intWrap(watch), cleanup);
 
     result = PyEval_CallObject(removeHandleObj, pyobj_args);
-    if (!result) {
+    if (result) {
+        retval = 0;
+    } else {
         PyErr_Print();
         PyErr_Clear();
-    } else if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
-        DEBUG("%s: %s must return opaque obj registered with %s"
-              "to avoid leaking libvirt memory\n",
-              __FUNCTION__, NAME(removeHandle), NAME(addHandle));
-    } else {
-        opaque = PyTuple_GetItem(result, 1);
-        ff = PyTuple_GetItem(result, 2);
-        cff = PyvirFreeCallback_Get(ff);
-        if (cff)
-            (*cff)(PyvirVoidPtr_Get(opaque));
-        retval = 0;
     }
 
  cleanup:
@@ -5350,6 +5341,9 @@ libvirt_virEventAddTimeoutFunc(int timeout,
 
     VIR_PY_TUPLE_SET_GOTO(pyobj_args, 2, cb_args, cleanup);
 
+    /* If changing contents of the opaque object, please also change
+     * virEventInvokeFreeCallback() in libvirt-override.py
+     */
     VIR_PY_TUPLE_SET_GOTO(cb_args, 0, libvirt_virEventTimeoutCallbackWrap(cb), cleanup);
     VIR_PY_TUPLE_SET_GOTO(cb_args, 1, libvirt_virVoidPtrWrap(opaque), cleanup);
     VIR_PY_TUPLE_SET_GOTO(cb_args, 2, libvirt_virFreeCallbackWrap(ff), cleanup);
@@ -5403,10 +5397,7 @@ libvirt_virEventRemoveTimeoutFunc(int timer)
 {
     PyObject *result = NULL;
     PyObject *pyobj_args;
-    PyObject *opaque;
-    PyObject *ff;
     int retval = -1;
-    virFreeCallback cff;
 
     LIBVIRT_ENSURE_THREAD_STATE;
 
@@ -5416,20 +5407,11 @@ libvirt_virEventRemoveTimeoutFunc(int timer)
     VIR_PY_TUPLE_SET_GOTO(pyobj_args, 0, libvirt_intWrap(timer), cleanup);
 
     result = PyEval_CallObject(removeTimeoutObj, pyobj_args);
-    if (!result) {
+    if (result) {
+        retval = 0;
+    } else {
         PyErr_Print();
         PyErr_Clear();
-    } else if (!PyTuple_Check(result) || PyTuple_Size(result) != 3) {
-        DEBUG("%s: %s must return opaque obj registered with %s"
-              "to avoid leaking libvirt memory\n",
-              __FUNCTION__, NAME(removeTimeout), NAME(addTimeout));
-    } else {
-        opaque = PyTuple_GetItem(result, 1);
-        ff = PyTuple_GetItem(result, 2);
-        cff = PyvirFreeCallback_Get(ff);
-        if (cff)
-            (*cff)(PyvirVoidPtr_Get(opaque));
-        retval = 0;
     }
 
  cleanup:
@@ -5552,6 +5534,31 @@ libvirt_virEventInvokeTimeoutCallback(PyObject *self ATTRIBUTE_UNUSED,
     if (cb) {
         LIBVIRT_BEGIN_ALLOW_THREADS;
         cb(timer, opaque);
+        LIBVIRT_END_ALLOW_THREADS;
+    }
+
+    return VIR_PY_INT_SUCCESS;
+}
+
+static PyObject *
+libvirt_virEventInvokeFreeCallback(PyObject *self ATTRIBUTE_UNUSED,
+                                   PyObject *args)
+{
+    PyObject *py_f;
+    PyObject *py_opaque;
+    virFreeCallback cb;
+    void *opaque;
+
+    if (!PyArg_ParseTuple(args, (char *) "OO:virEventInvokeFreeCallback",
+                          &py_f, &py_opaque))
+        return NULL;
+
+    cb     = (virFreeCallback) PyvirEventHandleCallback_Get(py_f);
+    opaque = (void *) PyvirVoidPtr_Get(py_opaque);
+
+    if (cb) {
+        LIBVIRT_BEGIN_ALLOW_THREADS;
+        cb(opaque);
         LIBVIRT_END_ALLOW_THREADS;
     }
 
@@ -6932,6 +6939,63 @@ libvirt_virConnectDomainEventMetadataChangeCallback(virConnectPtr conn ATTRIBUTE
 }
 #endif /* VIR_DOMAIN_EVENT_ID_METADATA_CHANGE */
 
+#ifdef VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD
+static int
+libvirt_virConnectDomainEventBlockThresholdCallback(virConnectPtr conn ATTRIBUTE_UNUSED,
+                                                    virDomainPtr dom,
+                                                    const char *dev,
+                                                    const char *path,
+                                                    unsigned long long threshold,
+                                                    unsigned long long excess,
+                                                    void *opaque)
+{
+    PyObject *pyobj_cbData = (PyObject*)opaque;
+    PyObject *pyobj_dom;
+    PyObject *pyobj_ret = NULL;
+    PyObject *pyobj_conn;
+    PyObject *dictKey;
+    int ret = -1;
+
+    LIBVIRT_ENSURE_THREAD_STATE;
+
+    if (!(dictKey = libvirt_constcharPtrWrap("conn")))
+        goto cleanup;
+    pyobj_conn = PyDict_GetItem(pyobj_cbData, dictKey);
+    Py_DECREF(dictKey);
+
+    /* Create a python instance of this virDomainPtr */
+    virDomainRef(dom);
+    if (!(pyobj_dom = libvirt_virDomainPtrWrap(dom))) {
+        virDomainFree(dom);
+        goto cleanup;
+    }
+    Py_INCREF(pyobj_cbData);
+
+    /* Call the Callback Dispatcher */
+    pyobj_ret = PyObject_CallMethod(pyobj_conn,
+                                    (char*)"_dispatchDomainEventBlockThresholdCallback",
+                                    (char*)"OssiiO",
+                                    pyobj_dom, dev, path, threshold, excess,
+                                    pyobj_cbData);
+
+    Py_DECREF(pyobj_cbData);
+    Py_DECREF(pyobj_dom);
+
+ cleanup:
+    if (!pyobj_ret) {
+        DEBUG("%s - ret:%p\n", __FUNCTION__, pyobj_ret);
+        PyErr_Print();
+    } else {
+        Py_DECREF(pyobj_ret);
+        ret = 0;
+    }
+
+    LIBVIRT_RELEASE_THREAD_STATE;
+    return ret;
+}
+#endif /* VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD */
+
+
 static PyObject *
 libvirt_virConnectDomainEventRegisterAny(PyObject *self ATTRIBUTE_UNUSED,
                                          PyObject *args)
@@ -7052,6 +7116,11 @@ libvirt_virConnectDomainEventRegisterAny(PyObject *self ATTRIBUTE_UNUSED,
         cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventMetadataChangeCallback);
         break;
 #endif /* VIR_DOMAIN_EVENT_ID_METADATA_CHANGE */
+#ifdef VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD
+    case VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD:
+        cb = VIR_DOMAIN_EVENT_CALLBACK(libvirt_virConnectDomainEventBlockThresholdCallback);
+        break;
+#endif /* VIR_DOMAIN_EVENT_ID_BLOCK_THRESHOLD */
     case VIR_DOMAIN_EVENT_ID_LAST:
         break;
     }
@@ -7739,7 +7808,7 @@ libvirt_virNodeSetMemoryParameters(PyObject *self ATTRIBUTE_UNUSED,
     int nparams = 0;
     Py_ssize_t size = 0;
     unsigned int flags;
-    virTypedParameterPtr params, new_params = NULL;
+    virTypedParameterPtr params = NULL, new_params = NULL;
 
     if (!PyArg_ParseTuple(args,
                           (char *)"OOI:virNodeSetMemoryParameters",
@@ -7798,7 +7867,7 @@ libvirt_virNodeSetMemoryParameters(PyObject *self ATTRIBUTE_UNUSED,
 
  cleanup:
     virTypedParamsFree(params, nparams);
-    virTypedParamsFree(new_params, nparams);
+    virTypedParamsFree(new_params, size);
     return ret;
 }
 
@@ -9394,6 +9463,103 @@ libvirt_virConnectSecretEventDeregisterAny(PyObject *self ATTRIBUTE_UNUSED,
 }
 #endif /* LIBVIR_CHECK_VERSION(3, 0, 0)*/
 
+
+#if LIBVIR_CHECK_VERSION(3, 4, 0)
+static PyObject *
+libvirt_virStreamRecvHole(PyObject *self ATTRIBUTE_UNUSED,
+                          PyObject *args)
+{
+    PyObject *pyobj_stream;
+    virStreamPtr stream;
+    long long length = -1;
+    unsigned int flags;
+    int ret;
+
+    if (!PyArg_ParseTuple(args, (char *) "OI:virStreamRecvHole",
+                          &pyobj_stream, &flags))
+        return NULL;
+
+    stream = PyvirStream_Get(pyobj_stream);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    ret = virStreamRecvHole(stream, &length, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    DEBUG("StreamRecvHole ret=%d length=%lld\n", ret, length);
+
+    if (ret < 0)
+        return VIR_PY_NONE;
+
+    return libvirt_longlongWrap(length);
+}
+
+
+static PyObject *
+libvirt_virStreamSendHole(PyObject *self ATTRIBUTE_UNUSED,
+                          PyObject *args)
+{
+    PyObject *pyobj_stream;
+    virStreamPtr stream;
+    long long length;
+    unsigned int flags;
+    int ret;
+
+    if (!PyArg_ParseTuple(args, (char *) "OLI:virStreamSendHole",
+                          &pyobj_stream, &length, &flags))
+        return NULL;
+
+    stream = PyvirStream_Get(pyobj_stream);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    ret = virStreamSendHole(stream, length, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    DEBUG("StreamSendHole ret=%d\n", ret);
+
+    return libvirt_intWrap(ret);
+}
+
+
+static PyObject *
+libvirt_virStreamRecvFlags(PyObject *self ATTRIBUTE_UNUSED,
+                           PyObject *args)
+{
+    PyObject *pyobj_stream;
+    PyObject *rv;
+    virStreamPtr stream;
+    char *buf = NULL;
+    size_t nbytes;
+    unsigned int flags;
+    int ret;
+
+    if (!PyArg_ParseTuple(args, (char *) "OkI:virStreamRecvFlags",
+                          &pyobj_stream, &nbytes, &flags))
+        return NULL;
+
+    stream = PyvirStream_Get(pyobj_stream);
+
+    if (VIR_ALLOC_N(buf, nbytes + 1) < 0)
+        return PyErr_NoMemory();
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    ret = virStreamRecvFlags(stream, buf, nbytes, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    buf[ret > -1 ? ret : 0] = '\0';
+    DEBUG("StreamRecvFlags ret=%d strlen=%d\n", ret, (int) strlen(buf));
+
+    if (ret == -2 || ret == -3)
+        return libvirt_intWrap(ret);
+    if (ret < 0)
+        return VIR_PY_NONE;
+    rv = libvirt_charPtrSizeWrap((char *) buf, (Py_ssize_t) ret);
+    VIR_FREE(buf);
+    return rv;
+}
+
+#endif /* LIBVIR_CHECK_VERSION(3, 4, 0) */
+
+
 /************************************************************************
  *									*
  *			The registration stuff				*
@@ -9510,6 +9676,7 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virEventAddTimeout", libvirt_virEventAddTimeout, METH_VARARGS, NULL},
     {(char *) "virEventInvokeHandleCallback", libvirt_virEventInvokeHandleCallback, METH_VARARGS, NULL},
     {(char *) "virEventInvokeTimeoutCallback", libvirt_virEventInvokeTimeoutCallback, METH_VARARGS, NULL},
+    {(char *) "virEventInvokeFreeCallback", libvirt_virEventInvokeFreeCallback, METH_VARARGS, NULL},
     {(char *) "virNodeListDevices", libvirt_virNodeListDevices, METH_VARARGS, NULL},
 #if LIBVIR_CHECK_VERSION(0, 10, 2)
     {(char *) "virConnectListAllNodeDevices", libvirt_virConnectListAllNodeDevices, METH_VARARGS, NULL},
@@ -9617,6 +9784,11 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virConnectSecretEventRegisterAny", libvirt_virConnectSecretEventRegisterAny, METH_VARARGS, NULL},
     {(char *) "virConnectSecretEventDeregisterAny", libvirt_virConnectSecretEventDeregisterAny, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(3, 0, 0) */
+#if LIBVIR_CHECK_VERSION(3, 4, 0)
+    {(char *) "virStreamRecvHole", libvirt_virStreamRecvHole, METH_VARARGS, NULL},
+    {(char *) "virStreamSendHole", libvirt_virStreamSendHole, METH_VARARGS, NULL},
+    {(char *) "virStreamRecvFlags", libvirt_virStreamRecvFlags, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(3, 4, 0) */
     {NULL, NULL, 0, NULL}
 };
 
