@@ -1,3 +1,13 @@
+libvirt-python (3.7.0-1~1.gbpc69b93) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @c69b9307adc646566be46c4f4676f8963a22f102 **
+
+  * Bump standards version to 4.0.0
+  * Enable hardening
+  * New upstream version 3.7.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 15 Sep 2017 08:30:37 +0200
+
 libvirt-python (3.5.0-1) unstable; urgency=medium
 
   * [52a4687] Update upstream pgp key
