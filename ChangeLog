@@ -1,3 +1,63 @@
+2017-08-26 John Ferlan  <jferlan@redhat.com>
+    
+    Implement virDomainMigrateGetMaxDowntime
+    Add override code for virDomainMigrateGetMaxDowntime
+    
+    
+2017-08-26 John Ferlan  <jferlan@redhat.com>
+    
+    Introduce virDomainMigrateGetMaxDowntime API
+    Introduce wrapper for virDomainMigrateGetMaxDowntime
+    
+    
+2017-08-10 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix package name in description of sub-RPMs
+    
+    
+2017-08-10 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Revert "rpm: assume python3 is always available"
+    This reverts commit b302b6d884ad4c6c917203a463f3377f3615b030.
+    
+    Only drop the Fedora 18 test - RHEL must still build without
+    python 3
+    
+    
+2017-08-10 Daniel P. Berrange  <berrange@redhat.com>
+    
+    rpm: rename packages to python2-libvirt / python3-libvirt
+    This complies with Fedora naming policy for python packages
+    
+    Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
+    
+    
+2017-08-10 Daniel P. Berrange  <berrange@redhat.com>
+    
+    rpm: assume python3 is always available
+    Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
+    
+    
+2017-08-02 Tomáš Golembiovský  <tgolembi@redhat.com>
+    
+    virDomainMemoryStats: include usable memory and last update
+    We've forgot to include VIR_DOMAIN_MEMORY_STAT_USABLE and
+    VIR_DOMAIN_MEMORY_STAT_LAST_UPDATE constants.
+    
+    
+    
+2017-08-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.6.0
+    virtually identical to 3.5.0 except for the bump of version in setup.py
+    
+    
+2017-07-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-3.5.0
+    * setup.py: bump version number
+    
+    
 2017-06-20 Martin Kletzander  <mkletzan@redhat.com>
     
     Add details for shutdown event

@@ -1,12 +1,12 @@
 
 %define with_python3 0
-%if 0%{?fedora} > 18
+%if 0%{?fedora}
 %define with_python3 1
 %endif
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 3.5.0
+Version: 3.7.0
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
@@ -32,15 +32,33 @@ written in the Python programming language to use the interface
 supplied by the libvirt library to use the virtualization capabilities
 of recent versions of Linux (and other OSes).
 
+%package -n python2-libvirt
+Summary: The libvirt virtualization API python2 binding
+Url: http://libvirt.org
+License: LGPLv2+
+Group: Development/Libraries
+%{?python_provide:%python_provide python2-libvirt}
+Provides: libvirt-python = %{version}-%{release}
+Obsoletes: libvirt-python < %{version}-%{release}
+
+%description -n python2-libvirt
+The python2-libvirt package contains a module that permits applications
+written in the Python programming language to use the interface
+supplied by the libvirt library to use the virtualization capabilities
+of recent versions of Linux (and other OSes).
+
 %if %{with_python3}
-%package -n libvirt-python3
+%package -n python3-libvirt
 Summary: The libvirt virtualization API python3 binding
 Url: http://libvirt.org
 License: LGPLv2+
 Group: Development/Libraries
+%{?python_provide:%python_provide python3-libvirt}
+Provides: libvirt-python3 = %{version}-%{release}
+Obsoletes: libvirt-python3 < %{version}-%{release}
 
-%description -n libvirt-python3
-The libvirt-python package contains a module that permits applications
+%description -n python3-libvirt
+The python3-libvirt package contains a module that permits applications
 written in the Python programming language to use the interface
 supplied by the libvirt library to use the virtualization capabilities
 of recent versions of Linux (and other OSes).
@@ -72,7 +90,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
 %{__python3} setup.py test
 %endif
 
-%files
+%files -n python2-libvirt
 %defattr(-,root,root)
 %doc ChangeLog AUTHORS NEWS README COPYING COPYING.LESSER examples/
 %{_libdir}/python2*/site-packages/libvirt.py*
@@ -82,7 +100,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
 %{_libdir}/python2*/site-packages/*egg-info
 
 %if %{with_python3}
-%files -n libvirt-python3
+%files -n python3-libvirt
 %defattr(-,root,root)
 %doc ChangeLog AUTHORS NEWS README COPYING COPYING.LESSER examples/
 %{_libdir}/python3*/site-packages/libvirt.py*
