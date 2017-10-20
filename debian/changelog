@@ -1,3 +1,9 @@
+libvirt-python (3.8.0-1) unstable; urgency=medium
+
+  * [72d1e87] New upstream version 3.8.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Fri, 20 Oct 2017 14:18:11 +0200
+
 libvirt-python (3.7.0-1) unstable; urgency=medium
 
   * [97cf6f8] Bump standards version to 4.0.0
