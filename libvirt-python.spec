@@ -6,7 +6,7 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 3.7.0
+Version: 3.8.0
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
@@ -39,7 +39,7 @@ License: LGPLv2+
 Group: Development/Libraries
 %{?python_provide:%python_provide python2-libvirt}
 Provides: libvirt-python = %{version}-%{release}
-Obsoletes: libvirt-python < %{version}-%{release}
+Obsoletes: libvirt-python <= 3.6.0-1%{?dist}
 
 %description -n python2-libvirt
 The python2-libvirt package contains a module that permits applications
@@ -55,7 +55,7 @@ License: LGPLv2+
 Group: Development/Libraries
 %{?python_provide:%python_provide python3-libvirt}
 Provides: libvirt-python3 = %{version}-%{release}
-Obsoletes: libvirt-python3 < %{version}-%{release}
+Obsoletes: libvirt-python3 <= 3.6.0-1%{?dist}
 
 %description -n python3-libvirt
 The python3-libvirt package contains a module that permits applications

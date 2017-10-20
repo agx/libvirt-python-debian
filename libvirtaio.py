@@ -30,7 +30,11 @@ Register the implementation of default loop:
 
 __author__ = 'Wojtek Porczyk <woju@invisiblethingslab.com>'
 __license__ = 'LGPL-2.1+'
-__all__ = ['virEventAsyncIOImpl', 'virEventRegisterAsyncIOImpl']
+__all__ = [
+    'getCurrentImpl',
+    'virEventAsyncIOImpl',
+    'virEventRegisterAsyncIOImpl',
+]
 
 import asyncio
 import itertools
@@ -63,18 +67,13 @@ class Callback(object):
         self.cb = cb
         self.opaque = opaque
 
-        assert self.iden not in self.impl.callbacks, \
-            'found {} callback: {!r}'.format(
-                self.iden, self.impl.callbacks[self.iden])
-        self.impl.callbacks[self.iden] = self
-
     def __repr__(self):
         return '<{} iden={}>'.format(self.__class__.__name__, self.iden)
 
     def close(self):
         '''Schedule *ff* callback'''
         self.impl.log.debug('callback %d close(), scheduling ff', self.iden)
-        self.impl.schedule_ff_callback(self.opaque)
+        self.impl.schedule_ff_callback(self.iden, self.opaque)
 
 #
 # file descriptors
@@ -96,7 +95,7 @@ class Descriptor(object):
 
         :param int event: The event (from libvirt's constants) being dispatched
         '''
-        for callback in self.callbacks.values():
+        for callback in list(self.callbacks.values()):
             if callback.event is not None and callback.event & event:
                 callback.cb(callback.iden, self.fd, event, callback.opaque)
 
@@ -158,11 +157,6 @@ class Descriptor(object):
         callback = self.callbacks.pop(iden)
         self.update()
         return callback
-
-    def close(self):
-        ''''''
-        self.callbacks.clear()
-        self.update()
 
 class DescriptorDict(dict):
     '''Descriptors collection
@@ -254,8 +248,8 @@ class TimeoutCallback(Callback):
 
     def close(self):
         '''Stop the timer and call ff callback'''
-        super(TimeoutCallback, self).close()
         self.update(timeout=-1)
+        super(TimeoutCallback, self).close()
 
 #
 # main implementation
@@ -275,6 +269,27 @@ class virEventAsyncIOImpl(object):
         self.descriptors = DescriptorDict(self)
         self.log = logging.getLogger(self.__class__.__name__)
 
+        # NOTE invariant: _finished.is_set() iff _pending == 0
+        self._pending = 0
+        self._finished = asyncio.Event(loop=loop)
+        self._finished.set()
+
+    def __repr__(self):
+        return '<{} callbacks={} descriptors={}>'.format(
+            type(self).__name__, self.callbacks, self.descriptors)
+
+    def _pending_inc(self):
+        '''Increase the count of pending affairs. Do not use directly.'''
+        self._pending += 1
+        self._finished.clear()
+
+    def _pending_dec(self):
+        '''Decrease the count of pending affairs. Do not use directly.'''
+        assert self._pending > 0
+        self._pending -= 1
+        if self._pending == 0:
+            self._finished.set()
+
     def register(self):
         '''Register this instance as event loop implementation'''
         # pylint: disable=bad-whitespace
@@ -284,9 +299,31 @@ class virEventAsyncIOImpl(object):
             self._add_timeout, self._update_timeout, self._remove_timeout)
         return self
 
-    def schedule_ff_callback(self, opaque):
+    def schedule_ff_callback(self, iden, opaque):
         '''Schedule a ff callback from one of the handles or timers'''
-        self.loop.call_soon(libvirt.virEventInvokeFreeCallback, opaque)
+        ensure_future(self._ff_callback(iden, opaque), loop=self.loop)
+
+    @asyncio.coroutine
+    def _ff_callback(self, iden, opaque):
+        '''Directly free the opaque object
+
+        This is a coroutine.
+        '''
+        self.log.debug('ff_callback(iden=%d, opaque=...)', iden)
+        ret = libvirt.virEventInvokeFreeCallback(opaque)
+        self._pending_dec()
+        return ret
+
+    @asyncio.coroutine
+    def drain(self):
+        '''Wait for the implementation to become idle.
+
+        This is a coroutine.
+        '''
+        self.log.debug('drain()')
+        if self._pending:
+            yield from self._finished.wait()
+        self.log.debug('drain ended')
 
     def is_idle(self):
         '''Returns False if there are leftovers from a connection
@@ -294,7 +331,7 @@ class virEventAsyncIOImpl(object):
         Those may happen if there are sematical problems while closing
         a connection. For example, not deregistered events before .close().
         '''
-        return not self.callbacks
+        return not self.callbacks and not self._pending
 
     def _add_handle(self, fd, event, cb, opaque):
         '''Register a callback for monitoring file handle events
@@ -309,12 +346,15 @@ class virEventAsyncIOImpl(object):
         .. seealso::
             https://libvirt.org/html/libvirt-libvirt-event.html#virEventAddHandleFuncFunc
         '''
-        self.log.debug('add_handle(fd=%d, event=%d, cb=%r, opaque=%r)',
-                fd, event, cb, opaque)
         callback = FDCallback(self, cb, opaque,
                 descriptor=self.descriptors[fd], event=event)
+        assert callback.iden not in self.callbacks
+
+        self.log.debug('add_handle(fd=%d, event=%d, cb=..., opaque=...) = %d',
+                fd, event, callback.iden)
         self.callbacks[callback.iden] = callback
         self.descriptors[fd].add_handle(callback)
+        self._pending_inc()
         return callback.iden
 
     def _update_handle(self, watch, event):
@@ -339,7 +379,11 @@ class virEventAsyncIOImpl(object):
             https://libvirt.org/html/libvirt-libvirt-event.html#virEventRemoveHandleFunc
         '''
         self.log.debug('remove_handle(watch=%d)', watch)
-        callback = self.callbacks.pop(watch)
+        try:
+            callback = self.callbacks.pop(watch)
+        except KeyError as err:
+            self.log.warning('remove_handle(): no such handle: %r', err.args[0])
+            raise
         fd = callback.descriptor.fd
         assert callback is self.descriptors[fd].remove_handle(watch)
         if len(self.descriptors[fd].callbacks) == 0:
@@ -358,11 +402,14 @@ class virEventAsyncIOImpl(object):
         .. seealso::
             https://libvirt.org/html/libvirt-libvirt-event.html#virEventAddTimeoutFunc
         '''
-        self.log.debug('add_timeout(timeout=%d, cb=%r, opaque=%r)',
-                timeout, cb, opaque)
         callback = TimeoutCallback(self, cb, opaque)
+        assert callback.iden not in self.callbacks
+
+        self.log.debug('add_timeout(timeout=%d, cb=..., opaque=...) = %d',
+                timeout, callback.iden)
         self.callbacks[callback.iden] = callback
         callback.update(timeout=timeout)
+        self._pending_inc()
         return callback.iden
 
     def _update_timeout(self, timer, timeout):
@@ -390,10 +437,18 @@ class virEventAsyncIOImpl(object):
         callback = self.callbacks.pop(timer)
         callback.close()
 
+
+_current_impl = None
+def getCurrentImpl():
+    '''Return the current implementation, or None if not yet registered'''
+    return _current_impl
+
 def virEventRegisterAsyncIOImpl(loop=None):
     '''Arrange for libvirt's callbacks to be dispatched via asyncio event loop
 
     The implementation object is returned, but in normal usage it can safely be
     discarded.
     '''
-    return virEventAsyncIOImpl(loop=loop).register()
+    global _current_impl
+    _current_impl = virEventAsyncIOImpl(loop=loop).register()
+    return _current_impl

@@ -1,3 +1,170 @@
+2017-09-29 Nir Soffer  <nirsof@gmail.com>
+    
+    Unify whitespace around *_ALLOW_THREADS macros
+    Most of the code treats libvirt API calls as separate block, keeping one
+    blank line before the LIBVIRT_BEGIN_ALLOW_THREAD, and one blank line
+    after LIBVIRT_END_ALLOW_THREADS. Unify the whitespace so all calls
+    wrapped with these macros are treated as a separate block.
+    
+    
+2017-09-27 Nir Soffer  <nirsof@gmail.com>
+    
+    Release the GIL during virDomainGetMemoryStats & virDomainGetDiskErrors
+    We discovered that the entire python process get stuck for about 30
+    seconds when calling virDomain.getMemoryStats() if libvirt is stuck in
+    virConnect.getAllDomainStats() on inaccessible storage. This blocking
+    cause a horrible mess in oVirt.
+    
+    This patches adds the standard *_ALLOW_THREADS around the call to avoid
+    this unwanted blocking.
+    
+    
+    
+2017-09-26 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Avoid implicit treatment of an arithmetic result as a boolean
+    Latest GCC versions are unhappy with us treating an integer
+    arithmetic result as a boolean:
+    
+    libvirt-utils.c: In function ‘virReallocN’:
+    libvirt-utils.c:111:23: warning: ‘*’ in boolean context, suggest ‘&&’ instead [-Wint-in-bool-context]
+    if (!tmp && (size * count)) {
+    ~~~~~~^~~~~~~~
+    
+    Add an explicit comparison '!= 0' to keep it happy, since its
+    suggestion to use '&&' is nonsense.
+    
+    
+    
+2017-09-26 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix comparisons between signed & unsigned integers
+    When python3 builds C modules, it adds the -Wsign-compare flag to GCC.
+    This creates lots of warnings where we compare a 'size_t' value against
+    an 'int' value due to signed/unsigned difference.  Change all the size_t
+    types to ssize_t to address this.
+    
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: add .drain() coroutine
+    The intended use is to ensure that the implementation is empty, which is
+    one way to ensure that all connections were properly closed and file
+    descriptors reclaimed.
+    
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: keep track of the current implementation
+    Since 7534c19 it is not possible to register event implementation twice.
+    Instead, allow for retrieving the current one, should it be needed
+    afterwards.
+    
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: fix closing of the objects
+    - Descriptor.close() was a dead code, never used.
+    - TimeoutCallback.close(), as a cleanup function, should have called
+    super() as last statement, not first
+    
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: do not double-add callbacks
+    This was a harmless bug, without any impact, but it is wrong to manage
+    the collection of callbacks from it's members.
+    
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: cache the list of callbacks when calling
+    When the callback causes something that results in changes wrt
+    registered handles, python aborts iteration.
+    
+    Relevant error message:
+    
+    Exception in callback None()
+    handle: <Handle cancelled>
+    Traceback (most recent call last):
+    File "/usr/lib64/python3.5/asyncio/events.py", line 126, in _run
+    self._callback(*self._args)
+    File "/usr/lib64/python3.5/site-packages/libvirtaio.py", line 99, in _handle
+    for callback in self.callbacks.values():
+    RuntimeError: dictionary changed size during iteration
+    
+    QubesOS/qubes-issues#2805
+    
+    
+2017-09-26 Wojtek Porczyk  <woju@invisiblethingslab.com>
+    
+    libvirtaio: add more debug logging
+    This logging is helpful for tracing problems with unclosed connections
+    and leaking file descriptors.
+    
+    
+    
+2017-09-19 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add travis build config
+    Enable builds on several python versions, and against several versions
+    of libvirt. Ideally we would build all the way back to 0.9.11, since
+    that is the min supported libvirt for python binding. It is not possible
+    to build this old libvirt version on modern distros though, so using
+    1.2.0 as the oldest for now.
+    
+    Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
+    
+    
+2017-09-18 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Skip sparseRecvAll / sparseSendAll in sanity test
+    The sanity test check aims to ensure that every function listed in
+    the Python code maps to a corresponding C function. The Sparse
+    send/recv methods are special though - we're never calling the
+    corresponding C APIs, instead we have a pure python impl.
+    
+    
+    
+2017-09-06 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Post-release version bump to 3.8.0
+    
+    
+2017-09-06 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Report an error if registering an event loop twice
+    The C library will now ignore an attempt to register an event
+    loop twice. It is unable to report an error in this case though
+    due to the C API returning 'void'. To improve this we must
+    manually report an error at the python level.
+    
+    
+    
+2017-09-06 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Remove unused variables for event callbacks
+    
+    
+2017-09-04 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Change Obsoletes to an explicit version
+    We only want to obsolete versions which actually had the
+    original name, not all future versions.
+    
+    
+    
+2017-09-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 3.7.0
+    * setup.py: updated for release
+    
+    
 2017-08-26 John Ferlan  <jferlan@redhat.com>
     
     Implement virDomainMigrateGetMaxDowntime
