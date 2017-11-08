@@ -1,10 +1,8 @@
-libvirt-python (3.9.0-1~1.gbp59e3fd) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @59e3fd9629e6a85fcdfdad5a377cd45dff473557 **
+libvirt-python (3.9.0-1) unstable; urgency=medium
 
   * [d42572d] New upstream version 3.9.0
 
- -- Guido Günther <agx@sigxcpu.org>  Wed, 08 Nov 2017 09:14:39 +0100
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 08 Nov 2017 09:20:04 +0100
 
 libvirt-python (3.8.0-1) unstable; urgency=medium
 
