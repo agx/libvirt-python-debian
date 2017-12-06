@@ -1,3 +1,13 @@
+2017-11-30 Cédric Bosdonnat  <cbosdonnat@suse.com>
+    
+    Don't hardcode interpreter path
+    This is particularly useful on operating systems that don't ship
+    Python as part of the base system (eg. FreeBSD) while still working
+    just as well as it did before on Linux.
+    
+    Reviewed-by: Daniel P. Berrange <berrange@redhat.com>
+    
+    
 2017-11-02 Daniel Veillard  <veillard@redhat.com>
     
     Release of libvirt-python-3.9.0

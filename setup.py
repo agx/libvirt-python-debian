@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from distutils.core import setup, Extension, Command
 from distutils.command.build import build
@@ -335,7 +335,7 @@ class my_clean(clean):
 _c_modules, _py_modules = get_module_lists()
 
 setup(name = 'libvirt-python',
-      version = '3.9.0',
+      version = '3.10.0',
       url = 'http://www.libvirt.org',
       maintainer = 'Libvirt Maintainers',
       maintainer_email = 'libvir-list@redhat.com',
