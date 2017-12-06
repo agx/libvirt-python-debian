@@ -1,3 +1,13 @@
+libvirt-python (3.10.0-1~1.gbp2d0a2b) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @2d0a2bb3f1f3bb4504c792232d3aa3de8b02ba93 **
+
+  * [f59a45e] d/watch: use https URL
+  * [34eb4fb] d/control: Bump policy to 4.1.1
+  * [3324f9e] New upstream version 3.10.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Wed, 06 Dec 2017 15:27:53 +0100
+
 libvirt-python (3.9.0-1) unstable; urgency=medium
 
   * [d42572d] New upstream version 3.9.0
