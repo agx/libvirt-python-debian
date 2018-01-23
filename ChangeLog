@@ -1,3 +1,105 @@
+2018-01-19 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-4.0.0
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Use python*_sitearch macros instead of manually defining the dir
+    Note we use python_sitearch not python2_sitearch, since the former
+    is more portable.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Fix filtering of RPM provides for .so files
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Require libvirt native version matching py version by default
+    Although we're capable of building against any libvirt >= 0.9.11, 99% of the
+    time we want RPM builds to be done against matching libvirt version, otherwise
+    we might silently build against an unexpected/wrong version.
+    
+    We don't support building against a native libvirt that's newer than the
+    python binding, since the generator may incorrectly handle new APIs. So use
+    == instead of >= too.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Turn on python3 sub-RPMs for RHEL > 7
+    It is expected that future RHEL-8 will have python3 by default, so enable that.
+    It is unclear whether python2 will still be available, so leave that enabled
+    for now.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Adapt to rename of py2 RPMs from python- to python2- prefix
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add emacs mode marker to activate rpm-spec highlighting
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Add checks for min supported distros
+    Be clear about which distros we aim to support with the specfile, so we know
+    what we can cleanup in the spec later.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Allow override of which sub-RPMs to build
+    Allow using
+    
+    rpmbuild --define "with_python2 0"
+    
+    to override the default logic about which python sub-RPMs to build
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2018-01-12 Daniel P. Berrange  <berrange@redhat.com>
+    
+    Allow disabling of python2 RPM build
+    With Fedora modularity, it is possible to have add-on repos for multiple
+    versions of python3. It is thus desirable to be able to build libvirt-python
+    in these repos, with only the python3 sub-RPMs enabled.
+    
+    Thus also helps if future RHEL/Fedora drop python2 entirely from their default
+    repos.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2017-12-11 Peng Hao  <peng.hao2@zte.com.cn>
+    
+    libvirt-python : PyObject memory leak
+    libvirt_virConnectDomainEventTunableCallback leak a PyObject.
+    
+    
+    
+2017-12-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 3.10.0
+    
+    
 2017-11-30 Cédric Bosdonnat  <cbosdonnat@suse.com>
     
     Don't hardcode interpreter path
