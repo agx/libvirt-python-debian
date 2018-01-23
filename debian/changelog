@@ -1,3 +1,11 @@
+libvirt-python (4.0.0-1~1.gbpc9903f) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @c9903fa523399d1793dcd94db8fb98d567cce4c5 **
+
+  * [98db9b7] New upstream version 4.0.0
+
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 23 Jan 2018 16:42:46 +0100
+
 libvirt-python (3.10.0-1) unstable; urgency=medium
 
   * [f59a45e] d/watch: use https URL
