@@ -13,6 +13,10 @@
 %endif
 
 %define _with_python2 1
+%if 0%{?fedora} > 29 || 0%{?rhel} > 7
+%define _with_python2 0
+%endif
+
 %define _with_python3 0
 %if 0%{?fedora} || 0%{?rhel} > 7
 %define _with_python3 1
@@ -29,7 +33,7 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 4.0.0
+Version: 4.5.0
 Release: 1%{?dist}%{?extra_release}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
