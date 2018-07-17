@@ -1,10 +1,14 @@
-libvirt-python (4.5.0-1~1.gbp86d4f1) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @86d4f179daea554d30e138f23c5299d31613aaad **
+libvirt-python (4.5.0-1) unstable; urgency=medium
 
   * [f1bae57] New upstream version 4.5.0
+    (Closes: #903016)
+  * [dce8cdb] d/control: Switch VCS-* URLs to salsa
+  * [f233e12] Build-dep on libvirt 4.5.0
+  * [901c80d] Drop python version fields.
+    All current Debian releases have recent enough versions.
+  * [b82391b] Bump standards version
 
- -- Guido Günther <agx@sigxcpu.org>  Sun, 08 Jul 2018 12:01:39 +0200
+ -- Guido Günther <agx@sigxcpu.org>  Tue, 17 Jul 2018 19:49:38 +0200
 
 libvirt-python (4.0.0-1) unstable; urgency=medium
 
