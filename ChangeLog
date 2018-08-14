@@ -1,3 +1,51 @@
+2018-07-23 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    rpm: update min required rhel/fedora
+    Reviewed-by: Andrea Bolognani <abologna@redhat.com>
+    
+    
+2018-07-23 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    rpm: add BuildRequires on gcc
+    The gcc RPM is no longer part of the default build root.
+    
+    Reviewed-by: Andrea Bolognani <abologna@redhat.com>
+    
+    
+2018-07-23 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    rpm: use the versioned python2 macro names
+    The use of non-versioned python2 macro names is deprecated in Fedora
+    
+    Reviewed-by: Andrea Bolognani <abologna@redhat.com>
+    
+    
+2018-07-16 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    travis: add libvirt 4.5.0 version to build matrix
+    
+    
+2018-07-16 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    fix build with older libvirt missing virNWFilterBindingPtr
+    While we correctly disable all public API bindings that rely on
+    virNWFilterBindingPtr, the generator is still creating a helper function
+    that needs it - libvirt_virNWFilterBinding_pointer. Making this helper
+    conditional is a little hairy, so just provide a trivial typedef to keep
+    it happy.
+    
+    
+    
+2018-07-10 Cole Robinson  <crobinso@redhat.com>
+    
+    spec: Remove Group: and %defattr
+    These are only needed for RHEL5 builds, which are no longer supported
+    
+    https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/CMCUBB4SWS3URHTRRS3OPFM4HF5CGKBW/
+    https://fedoraproject.org/wiki/RPMGroups
+    
+    
+    
 2018-07-02 Daniel Veillard  <veillard@redhat.com>
     
     Release of libvirt-python-4.5.0
