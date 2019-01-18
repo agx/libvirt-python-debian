@@ -1,3 +1,10 @@
+2018-12-03 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-4.10.0
+    * setup.py: update to bump release number
+    
+    
+    
 2018-11-26 Philipp Hahn  <hahn@univention.de>
     
     Add daemon to list of shutdown reasons
