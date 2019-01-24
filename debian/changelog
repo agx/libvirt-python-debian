@@ -1,10 +1,8 @@
-libvirt-python (5.0.0-1~1.gbp47646d) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @47646d722f518a74fc6644485e713bd1ae40b697 **
+libvirt-python (5.0.0-1) unstable; urgency=medium
 
   * [b7e4a6f] New upstream version 5.0.0
 
- -- Guido Günther <agx@sigxcpu.org>  Fri, 18 Jan 2019 14:07:53 +0100
+ -- Guido Günther <agx@sigxcpu.org>  Thu, 24 Jan 2019 09:17:00 +0100
 
 libvirt-python (4.10.0-1) unstable; urgency=medium
 
