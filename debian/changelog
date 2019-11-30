@@ -245,7 +245,7 @@ libvirt-python (1.2.1-1) unstable; urgency=medium
 
 libvirt-python (1.2.0-2) unstable; urgency=medium
 
-  * Upload to unstable 
+  * Upload to unstable
 
  -- Guido Günther <agx@sigxcpu.org>  Fri, 20 Dec 2013 08:04:18 +0100
 
