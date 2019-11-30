@@ -1,3 +1,220 @@
+2019-07-29 Eric Blake  <eblake@redhat.com>
+    
+    Define virDomainCheckpointPtr typedef on old libvirt
+    Needed prior to 5.6.0
+    
+    
+    
+2019-07-29 Eric Blake  <eblake@redhat.com>
+    
+    Add virDomainCheckpoint APIs
+    Copies heavily from existing virDomainSnapshot handling, regarding
+    what special cases the generator has to be taught and what overrides
+    need to be written.
+    
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-07-09 Cole Robinson  <crobinso@redhat.com>
+    
+    spec: Bump minimum supported Fedora version to 29
+    Reviewed-by: Fabiano Fidêncio <fidencio@redhat.com>
+    
+    
+2019-07-09 Cole Robinson  <crobinso@redhat.com>
+    
+    spec: Unconditionally build python2 on Fedora
+    In Fedora we are currently shipping python2 bindings for all builds,
+    so this conditional is out of date. Fedora 31 may be the time that
+    python2 bindings are dropped:
+    
+    https://fedoraproject.org/wiki/Changes/F31_Mass_Python_2_Package_Removal
+    
+    But I think it's better to wait for that to actually happen before
+    we change this again
+    
+    Reviewed-by: Fabiano Fidêncio <fidencio@redhat.com>
+    
+    
+2019-07-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.5.0
+    * setup.py: update for release
+    
+    
+    
+2019-06-26 Sergei Turchanov  <turchanov@farpost.com>
+    
+    Fix regression in lxcOpenNamespace
+    This fixes regression caused by the 1d39dbaf637db03f6e597ed56b96aa065710b4a1
+    
+    fdlist[i] erroneously was replaced by fdlist[1] which caused
+    lxcOpenNamespace to return a list with identical elements.
+    
+    Reviewed-by: Ján Tomko <jtomko@redhat.com>
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Add new override file to dist
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Add missing impl of virNetworkListAllPorts
+    This API needs manual impl as the generator cannot cope
+    
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    sanitytest: add some special cases for virNetworkPort APIs
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    generator: fix naming of getter APIs for virNetworkPort
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Define virNetworkPortPtr typedef on old libvirt
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Fix syntax error with missing ; and too many )
+    
+    
+2019-06-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Add support for virNetworkPort object & APIs
+    Define the various rules in the generator to wire up methods into the
+    virNetwork class and create the new virNetworkPort class.
+    
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    Reviewed-by: Ján Tomko <jtomko@redhat.com>
+    
+    
+2019-06-03 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of Libvirt-python 5.4.0
+    
+    
+2019-05-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.3.0
+    * setup.py: bumped release version
+    
+    
+    
+2019-04-29 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Allow virConnect.getDomainCapabilities() to have no arguments
+    Our C API allows no values to be passed (well, it accepts all
+    NULLs). There's no reason that python binding should require all
+    arguments.
+    
+    Reviewed-by: Kashyap Chamarthy <kchamart@redhat.com>
+    
+    
+2019-04-04 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    rpm: use new python macros for build/install rules
+    The new %py{2,3}_{build,install} macros ensure that the right compiler
+    and linker flags are used when building python modules.
+    
+    Reviewed-by: Andrea Bolognani <abologna@redhat.com>
+    
+    
+2019-04-03 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.2.0
+    * setup.py: bumped release version up
+    
+    
+    
+2019-03-12 Nir Soffer  <nirsof@gmail.com>
+    
+    Fix handling of optional params in blockCopy()
+    Commit 2b4bd07e0a22 (Add check for params, nparams being a dictionary)
+    changed the way the optional params argument is treated. If
+    libvirt.virDomain.blockCopy() is called without specifying params,
+    params is None, and the call will fail with:
+    
+    TypeError: block params must be a dictionary
+    
+    This is wrong as params is defined as kwarg, breaking existing libvirt
+    users like oVirt. Add a check for Py_None, so we accept either a dict or
+    None and fail with TypeError with anything else.
+    
+    Resolves: https://bugzilla.redhat.com/1687114
+    
+    
+    
+2019-03-04 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.1.0
+    * setup.py: updated for release
+    
+    
+    
+2019-02-25 Pavel Hrdina  <phrdina@redhat.com>
+    
+    Fix virDomainPinIOThread typed params check
+    The VIR_DOMAIN_IOTHREAD_POLL_SHRINK is unsigned int.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1680546
+    
+    
+    
+2019-02-07 Eric Blake  <eblake@redhat.com>
+    
+    generator.py: typo fix
+    
+    
+2019-01-24 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    travis: add testing of 5.0.0 release
+    Update to test against very latest release. Since we dropped two
+    python versions, we can afford to add new libvirt version without
+    dropping a previous one.
+    
+    Reviewed-by: Cole Robinson <crobinso@redhat.com>
+    
+    
+2019-01-24 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    travis: switch from trusty to xenial dist
+    The trusty gnutls version is too old to support modern libvirt
+    
+    Reviewed-by: Cole Robinson <crobinso@redhat.com>
+    
+    
+2019-01-24 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    travis: remove python 2.6 and 3.6 from build matrix
+    The lxml package that we download with pip no longer supports either
+    of these versions of python.
+    
+    Reviewed-by: Cole Robinson <crobinso@redhat.com>
+    
+    
+2019-01-22 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    rpm spec: remove %{extra_release} from spec
+    The %{extra_release} field was previously populated by data from the old
+    autobuild.sh file but is no longer used.
+    
+    
+    
+2019-01-15 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.0.0
+    * setup.py: updated for release
+    
+    
+    
 2018-12-03 Daniel Veillard  <veillard@redhat.com>
     
     Release of libvirt-python-4.10.0

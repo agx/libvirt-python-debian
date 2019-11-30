@@ -4,7 +4,7 @@
 # that's still supported by the vendor. It may work on other distros
 # or versions, but no effort will be made to ensure that going forward
 %define min_rhel 7
-%define min_fedora 27
+%define min_fedora 29
 
 %if (0%{?fedora} && 0%{?fedora} >= %{min_fedora}) || (0%{?rhel} && 0%{?rhel} >= %{min_rhel})
     %define supported_platform 1
@@ -13,7 +13,7 @@
 %endif
 
 %define _with_python2 1
-%if 0%{?fedora} > 29 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 %define _with_python2 0
 %endif
 
@@ -33,8 +33,8 @@
 
 Summary: The libvirt virtualization API python2 binding
 Name: libvirt-python
-Version: 5.0.0
-Release: 1%{?dist}%{?extra_release}
+Version: 5.6.0
+Release: 1%{?dist}
 Source0: http://libvirt.org/sources/python/%{name}-%{version}.tar.gz
 Url: http://libvirt.org
 License: LGPLv2+
@@ -119,18 +119,34 @@ exit 1
 %endif
 
 %if %{with_python2}
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%py2_build
+%else
 CFLAGS="$RPM_OPT_FLAGS" %{__python2} setup.py build
 %endif
+%endif
 %if %{with_python3}
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%py3_build
+%else
 CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
+%endif
 %endif
 
 %install
 %if %{with_python2}
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%py2_install
+%else
 %{__python2} setup.py install --skip-build --root=%{buildroot}
 %endif
+%endif
 %if %{with_python3}
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%py3_install
+%else
 %{__python3} setup.py install --skip-build --root=%{buildroot}
+%endif
 %endif
 
 %check

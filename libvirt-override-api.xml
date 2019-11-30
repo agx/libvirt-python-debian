@@ -576,6 +576,18 @@
       <arg name='flags' type='unsigned int' info='flags'/>
       <return type='int' info="0 on success, -1 on error"/>
     </function>
+    <function name='virDomainListAllCheckpoints' file='python'>
+      <info>returns the list of checkpoints for the given domain</info>
+      <arg name='dom' type='virDomainPtr' info='pointer to the domain'/>
+      <arg name='flags' type='unsigned int' info='flags'/>
+      <return type='char *' info='the list of checkpoints or None in case of error'/>
+    </function>
+    <function name='virDomainCheckpointListAllChildren' file='python'>
+      <info>collect the list of child checkpoint names for the given checkpoint</info>
+      <arg name='checkpoint' type='virDomainCheckpointPtr' info='pointer to the checkpoint'/>
+      <arg name='flags' type='unsigned int' info='flags'/>
+      <return type='char *' info='the list of checkpoints or None in case of error'/>
+    </function>
     <function name='virDomainGetBlockJobInfo' file='python'>
       <info>Get progress information for a block job</info>
       <arg name='dom' type='virDomainPtr' info='pointer to the domain'/>
@@ -753,6 +765,29 @@
       <return type='char *' info='None in case of error, returns a dictionary of params'/>
       <arg name='conn' type='virConnectPtr' info='pointer to hypervisor connection'/>
       <arg name='flags' type='int' info='unused, always pass 0'/>
+    </function>
+    <function name='virConnectGetDomainCapabilities' file='libvirt-domain' module='libvirt-domain'>
+      <info>Query domain capabilities</info>
+      <return type='char *' info='NULL in case of error or an XML string defining the capabilities.'/>
+      <arg name='conn' type='virConnectPtr' info='pointer to the hypervisor connection'/>
+      <arg name='emulatorbin' type='const char *' info='optional path to emulator'/>
+      <arg name='arch' type='const char *' info='optional domain architecture'/>
+      <arg name='machine' type='const char *' info='optional machine type'/>
+      <arg name='virttype' type='const char *' info='optional virtualization type'/>
+      <arg name='flags' type='int' info='unused, always pass 0'/>
+    </function>
+    <function name='virNetworkPortSetParameters' file='python'>
+      <info>Change the port tunables</info>
+      <return type='int' info='-1 in case of error, 0 in case of success.'/>
+      <arg name='port' type='virNetworkPortPtr' info='pointer to network port object'/>
+      <arg name='params' type='virTypedParameterPtr' info='pointer to tunable objects'/>
+      <arg name='flags'  type='int' info='unused, always pass 0'/>
+    </function>
+    <function name='virNetworkPortGetParameters' file='python'>
+      <info>Get the port parameters</info>
+      <return type='char *' info='None in case of error, returns a dictionary of params'/>
+      <arg name='port' type='virNetworkPortPtr' info='pointer to network port object'/>
+      <arg name='flags'  type='int' info='unused, always pass 0'/>
     </function>
   </symbols>
 </api>
