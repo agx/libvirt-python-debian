@@ -1,10 +1,14 @@
-libvirt-python (5.6.0-1~1.gbp5f06b8) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @5f06b88ce2a6485255bd08edb84642fe41422eb6 **
+libvirt-python (5.6.0-1) unstable; urgency=medium
 
   * [53c69bc] New upstream version 5.6.0
+    (Closes: #945462)
+  * [7fcc6d7] Add salsa-ci
+  * [899460f] d/changelog: Remove trailing whitespace
+  * [73f23d7] d/rules: Remove trailing whitespace
+  * [1b1b18a] d/copyright: Use https URLs
+  * [1a3ec8e] Bump standards version to 4.4.0
 
- -- Guido Günther <agx@sigxcpu.org>  Sat, 30 Nov 2019 18:37:42 +0100
+ -- Guido Günther <agx@sigxcpu.org>  Sat, 30 Nov 2019 18:54:14 +0100
 
 libvirt-python (5.0.0-1) unstable; urgency=medium
 
