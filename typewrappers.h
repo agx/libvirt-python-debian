@@ -30,6 +30,12 @@ typedef ssize_t Py_ssize_t;
 #if !LIBVIR_CHECK_VERSION(4, 5, 0)
 typedef struct _virNWFilterBinding *virNWFilterBindingPtr;
 #endif
+#if !LIBVIR_CHECK_VERSION(5, 5, 0)
+typedef struct _virNetworkPort *virNetworkPortPtr;
+#endif
+#if !LIBVIR_CHECK_VERSION(5, 6, 0)
+typedef struct _virDomainCheckpoint *virDomainCheckpointPtr;
+#endif
 
 #define PyvirConnect_Get(v) (((v) == Py_None) ? NULL : \
         (((PyvirConnect_Object *)(v))->obj))
@@ -56,6 +62,15 @@ typedef struct {
     PyObject_HEAD
     virNetworkPtr obj;
 } PyvirNetwork_Object;
+
+
+#define PyvirNetworkPort_Get(v) (((v) == Py_None) ? NULL : \
+        (((PyvirNetworkPort_Object *)(v))->obj))
+
+typedef struct {
+    PyObject_HEAD
+    virNetworkPortPtr obj;
+} PyvirNetworkPort_Object;
 
 
 #define PyvirInterface_Get(v) (((v) == Py_None) ? NULL : \
@@ -128,6 +143,15 @@ typedef struct {
 } PyvirStream_Object;
 
 
+#define PyvirDomainCheckpoint_Get(v) (((v) == Py_None) ? NULL : \
+        (((PyvirDomainCheckpoint_Object *)(v))->obj))
+
+typedef struct {
+    PyObject_HEAD
+    virDomainCheckpointPtr obj;
+} PyvirDomainCheckpoint_Object;
+
+
 #define PyvirDomainSnapshot_Get(v) (((v) == Py_None) ? NULL : \
         (((PyvirDomainSnapshot_Object *)(v))->obj))
 
@@ -192,6 +216,7 @@ int libvirt_charPtrSizeUnwrap(PyObject *obj, char **str, Py_ssize_t *size);
 PyObject * libvirt_virConnectPtrWrap(virConnectPtr node);
 PyObject * libvirt_virDomainPtrWrap(virDomainPtr node);
 PyObject * libvirt_virNetworkPtrWrap(virNetworkPtr node);
+PyObject * libvirt_virNetworkPortPtrWrap(virNetworkPortPtr node);
 PyObject * libvirt_virInterfacePtrWrap(virInterfacePtr node);
 PyObject * libvirt_virStoragePoolPtrWrap(virStoragePoolPtr node);
 PyObject * libvirt_virStorageVolPtrWrap(virStorageVolPtr node);
@@ -204,6 +229,7 @@ PyObject * libvirt_virSecretPtrWrap(virSecretPtr node);
 PyObject * libvirt_virNWFilterPtrWrap(virNWFilterPtr node);
 PyObject * libvirt_virNWFilterBindingPtrWrap(virNWFilterBindingPtr node);
 PyObject * libvirt_virStreamPtrWrap(virStreamPtr node);
+PyObject * libvirt_virDomainCheckpointPtrWrap(virDomainCheckpointPtr node);
 PyObject * libvirt_virDomainSnapshotPtrWrap(virDomainSnapshotPtr node);
 
 

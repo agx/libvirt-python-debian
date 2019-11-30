@@ -35,6 +35,7 @@ libvirt_headers = [
     "libvirt",
     "libvirt-common",
     "libvirt-domain",
+    "libvirt-domain-checkpoint",
     "libvirt-domain-snapshot",
     "libvirt-event",
     "libvirt-host",
@@ -328,6 +329,10 @@ py_types = {
     'virNetwork *':  ('O', "virNetwork", "virNetworkPtr", "virNetworkPtr"),
     'const virNetwork *':  ('O', "virNetwork", "virNetworkPtr", "virNetworkPtr"),
 
+    'virNetworkPortPtr':  ('O', "virNetworkPort", "virNetworkPortPtr", "virNetworkPortPtr"),
+    'virNetworkPort *':  ('O', "virNetworkPort", "virNetworkPortPtr", "virNetworkPortPtr"),
+    'const virNetworkPort *':  ('O', "virNetworkPort", "virNetworkPortPtr", "virNetworkPortPtr"),
+
     'virInterfacePtr':  ('O', "virInterface", "virInterfacePtr", "virInterfacePtr"),
     'virInterface *':  ('O', "virInterface", "virInterfacePtr", "virInterfacePtr"),
     'const virInterface *':  ('O', "virInterface", "virInterfacePtr", "virInterfacePtr"),
@@ -363,6 +368,10 @@ py_types = {
     'virStreamPtr':  ('O', "virStream", "virStreamPtr", "virStreamPtr"),
     'virStream *':  ('O', "virStream", "virStreamPtr", "virStreamPtr"),
     'const virStream *':  ('O', "virStream", "virStreamPtr", "virStreamPtr"),
+
+    'virDomainCheckpointPtr':  ('O', "virDomainCheckpoint", "virDomainCheckpointPtr", "virDomainCheckpointPtr"),
+    'virDomainCheckpoint *':  ('O', "virDomainCheckpoint", "virDomainCheckpointPtr", "virDomainCheckpointPtr"),
+    'const virDomainCheckpoint *':  ('O', "virDomainCheckpoint", "virDomainCheckpointPtr", "virDomainCheckpointPtr"),
 
     'virDomainSnapshotPtr':  ('O', "virDomainSnapshot", "virDomainSnapshotPtr", "virDomainSnapshotPtr"),
     'virDomainSnapshot *':  ('O', "virDomainSnapshot", "virDomainSnapshotPtr", "virDomainSnapshotPtr"),
@@ -496,6 +505,8 @@ skip_impl = (
     'virConnectBaselineHypervisorCPU',
     'virDomainGetLaunchSecurityInfo',
     'virNodeGetSEVInfo',
+    'virNetworkPortGetParameters',
+    'virNetworkPortSetParameters',
 )
 
 lxc_skip_impl = (
@@ -536,11 +547,14 @@ skip_function = (
     'virSaveLastError', # We have our own python error wrapper
     'virFreeError', # Only needed if we use virSaveLastError
     'virConnectListAllDomains', # overridden in virConnect.py
+    'virDomainListAllCheckpoints', # overridden in virDomain.py
+    'virDomainCheckpointListAllChildren', # overridden in virDomainCheckpoint.py
     'virDomainListAllSnapshots', # overridden in virDomain.py
     'virDomainSnapshotListAllChildren', # overridden in virDomainSnapshot.py
     'virConnectListAllStoragePools', # overridden in virConnect.py
     'virStoragePoolListAllVolumes', # overridden in virStoragePool.py
     'virConnectListAllNetworks', # overridden in virConnect.py
+    'virNetworkListAllPorts', # overridden in virConnect.py
     'virConnectListAllInterfaces', # overridden in virConnect.py
     'virConnectListAllNodeDevices', # overridden in virConnect.py
     'virConnectListAllNWFilters', # overridden in virConnect.py
@@ -575,6 +589,7 @@ skip_function = (
     "virDomainRef",
     "virInterfaceRef",
     "virNetworkRef",
+    "virNetworkPortRef",
     "virNodeDeviceRef",
     "virSecretRef",
     "virNWFilterRef",
@@ -582,6 +597,7 @@ skip_function = (
     "virStoragePoolRef",
     "virStorageVolRef",
     "virStreamRef",
+    "virDomainCheckpointRef",
     "virDomainSnapshotRef",
 
     # This functions shouldn't be called via the bindings (and even the docs
@@ -590,10 +606,13 @@ skip_function = (
     "virDomainGetConnect",
     "virInterfaceGetConnect",
     "virNetworkGetConnect",
+    "virNetworkPortGetNetwork",
     "virSecretGetConnect",
     "virNWFilterGetConnect",
     "virStoragePoolGetConnect",
     "virStorageVolGetConnect",
+    "virDomainCheckpointGetConnect",
+    "virDomainCheckpointGetDomain",
     "virDomainSnapshotGetConnect",
     "virDomainSnapshotGetDomain",
 
@@ -1005,6 +1024,8 @@ classes_type = {
     "virDomain *": ("._o", "virDomain(self, _obj=%s)", "virDomain"),
     "virNetworkPtr": ("._o", "virNetwork(self, _obj=%s)", "virNetwork"),
     "virNetwork *": ("._o", "virNetwork(self, _obj=%s)", "virNetwork"),
+    "virNetworkPortPtr": ("._o", "virNetworkPort(self, _obj=%s)", "virNetworkPort"),
+    "virNetworkPort *": ("._o", "virNetworkPort(self, _obj=%s)", "virNetworkPort"),
     "virInterfacePtr": ("._o", "virInterface(self, _obj=%s)", "virInterface"),
     "virInterface *": ("._o", "virInterface(self, _obj=%s)", "virInterface"),
     "virStoragePoolPtr": ("._o", "virStoragePool(self, _obj=%s)", "virStoragePool"),
@@ -1023,19 +1044,22 @@ classes_type = {
     "virStream *": ("._o", "virStream(self, _obj=%s)", "virStream"),
     "virConnectPtr": ("._o", "virConnect(_obj=%s)", "virConnect"),
     "virConnect *": ("._o", "virConnect(_obj=%s)", "virConnect"),
+    "virDomainCheckpointPtr": ("._o", "virDomainCheckpoint(self,_obj=%s)", "virDomainCheckpoint"),
+    "virDomainCheckpoint *": ("._o", "virDomainCheckpoint(self, _obj=%s)", "virDomainCheckpoint"),
     "virDomainSnapshotPtr": ("._o", "virDomainSnapshot(self,_obj=%s)", "virDomainSnapshot"),
     "virDomainSnapshot *": ("._o", "virDomainSnapshot(self, _obj=%s)", "virDomainSnapshot"),
 }
 
-primary_classes = ["virDomain", "virNetwork", "virInterface",
-                   "virStoragePool", "virStorageVol",
+primary_classes = ["virDomain", "virNetwork", "virNetworkPort",
+                   "virInterface", "virStoragePool", "virStorageVol",
                    "virConnect", "virNodeDevice", "virSecret",
                    "virNWFilter", "virNWFilterBinding",
-                   "virStream", "virDomainSnapshot"]
+                   "virStream", "virDomainCheckpoint", "virDomainSnapshot"]
 
 classes_destructors = {
     "virDomain": "virDomainFree",
     "virNetwork": "virNetworkFree",
+    "virNetworkPort": "virNetworkPortFree",
     "virInterface": "virInterfaceFree",
     "virStoragePool": "virStoragePoolFree",
     "virStorageVol": "virStorageVolFree",
@@ -1043,6 +1067,7 @@ classes_destructors = {
     "virSecret": "virSecretFree",
     "virNWFilter": "virNWFilterFree",
     "virNWFilterBinding": "virNWFilterBindingFree",
+    "virDomainCheckpoint": "virDomainCheckpointFree",
     "virDomainSnapshot": "virDomainSnapshotFree",
     # We hand-craft __del__ for this one
     #"virStream": "virStreamFree",
@@ -1053,6 +1078,7 @@ class_skip_connect_impl = {
 }
 
 class_domain_impl = {
+    "virDomainCheckpoint": True,
     "virDomainSnapshot": True,
 }
 
@@ -1095,7 +1121,7 @@ def is_python_noninteger_type (name):
     return name[-1:] == "*"
 
 def nameFixup(name, classe, type, file):
-    # avoid a desastrous clash
+    # avoid a disastrous clash
     listname = classe + "List"
     ll = len(listname)
     l = len(classe)
@@ -1110,6 +1136,12 @@ def nameFixup(name, classe, type, file):
         func = func[0:1].lower() + func[1:]
     elif name[0:16] == "virNetworkLookup":
         func = name[3:]
+        func = func[0:1].lower() + func[1:]
+    elif name[0:23] == "virNetworkPortCreateXML":
+        func = name[10:]
+        func = func[0:1].lower() + func[1:]
+    elif name[0:20] == "virNetworkPortLookup":
+        func = name[10:]
         func = func[0:1].lower() + func[1:]
     elif name[0:18] == "virInterfaceDefine":
         func = name[3:]
@@ -1171,6 +1203,15 @@ def nameFixup(name, classe, type, file):
     elif name[0:12] == "virDomainGet":
         func = name[12:]
         func = func[0:1].lower() + func[1:]
+    elif name[0:31] == "virDomainCheckpointLookupByName":
+        func = name[9:]
+        func = func[0:1].lower() + func[1:]
+    elif name[0:28] == "virDomainCheckpointCreateXML":
+        func = name[9:]
+        func = func[0:1].lower() + func[1:]
+    elif name[0:19] == "virDomainCheckpoint":
+        func = name[19:]
+        func = func[0:1].lower() + func[1:]
     elif name[0:29] == "virDomainSnapshotLookupByName":
         func = name[9:]
         func = func[0:1].lower() + func[1:]
@@ -1195,10 +1236,16 @@ def nameFixup(name, classe, type, file):
     elif name[0:9] == "virDomain":
         func = name[9:]
         func = func[0:1].lower() + func[1:]
+    elif name[0:17] == "virNetworkPortGet":
+        func = name[17:]
+        func = func[0:1].lower() + func[1:]
     elif name[0:13] == "virNetworkGet":
         func = name[13:]
         func = func[0:1].lower() + func[1:]
         func = func.replace("dHCP", "DHCP")
+    elif name[0:14] == "virNetworkPort":
+        func = name[14:]
+        func = func[0:1].lower() + func[1:]
     elif name[0:10] == "virNetwork":
         func = name[10:]
         func = func[0:1].lower() + func[1:]
@@ -1501,7 +1548,7 @@ def buildWrappers(module):
                               "virStorageVol", "virNodeDevice", "virSecret","virStream",
                               "virNWFilter", "virNWFilterBinding" ]:
                 classes.write("    def __init__(self, conn, _obj=None):\n")
-            elif classname in [ 'virDomainSnapshot' ]:
+            elif classname in [ "virDomainCheckpoint", "virDomainSnapshot" ]:
                 classes.write("    def __init__(self, dom, _obj=None):\n")
             else:
                 classes.write("    def __init__(self, _obj=None):\n")
@@ -1513,7 +1560,7 @@ def buildWrappers(module):
                 classes.write("        self._conn = conn\n" + \
                               "        if not isinstance(conn, virConnect):\n" + \
                               "            self._conn = conn._conn\n")
-            elif classname in [ "virDomainSnapshot" ]:
+            elif classname in [ "virDomainCheckpoint", "virDomainSnapshot" ]:
                 classes.write("        self._dom = dom\n")
                 classes.write("        self._conn = dom.connect()\n")
             classes.write("        if type(_obj).__name__ not in [\"PyCapsule\", \"PyCObject\"]:\n")
@@ -1641,7 +1688,7 @@ def buildWrappers(module):
                                 classes.write(
                      "        if ret is None:raise libvirtError('%s() failed', vol=self)\n" %
                                               (name))
-                            elif classname == "virDomainSnapshot":
+                            elif classname in [ "virDomainCheckpoint", "virDomainSnapshot"]:
                                 classes.write(
                      "        if ret is None:raise libvirtError('%s() failed', dom=self._dom)\n" %
                                               (name))

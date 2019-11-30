@@ -1684,7 +1684,7 @@ libvirt_virDomainPinIOThread(PyObject *self ATTRIBUTE_UNUSED,
 static virPyTypedParamsHint virPyDomainSetIOThreadParams[] = {
     { VIR_DOMAIN_IOTHREAD_POLL_MAX_NS, VIR_TYPED_PARAM_ULLONG },
     { VIR_DOMAIN_IOTHREAD_POLL_GROW, VIR_TYPED_PARAM_UINT },
-    { VIR_DOMAIN_IOTHREAD_POLL_SHRINK, VIR_TYPED_PARAM_ULLONG },
+    { VIR_DOMAIN_IOTHREAD_POLL_SHRINK, VIR_TYPED_PARAM_UINT },
 };
 
 static PyObject *
@@ -2324,6 +2324,98 @@ libvirt_virConnectListDefinedDomains(PyObject *self ATTRIBUTE_UNUSED,
     Py_CLEAR(py_retval);
     goto cleanup;
 }
+
+#if LIBVIR_CHECK_VERSION(5, 6, 0)
+static PyObject *
+libvirt_virDomainListAllCheckpoints(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    PyObject *py_retval = NULL;
+    virDomainCheckpointPtr *chks = NULL;
+    int c_retval;
+    ssize_t i;
+    virDomainPtr dom;
+    PyObject *pyobj_dom;
+    unsigned int flags;
+
+    if (!PyArg_ParseTuple(args, (char *)"OI:virDomainListAllCheckpoints",
+                          &pyobj_dom, &flags))
+        return NULL;
+    dom = (virDomainPtr) PyvirDomain_Get(pyobj_dom);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virDomainListAllCheckpoints(dom, &chks, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (c_retval < 0)
+        return VIR_PY_NONE;
+
+    if (!(py_retval = PyList_New(c_retval)))
+        goto cleanup;
+
+    for (i = 0; i < c_retval; i++) {
+        VIR_PY_LIST_SET_GOTO(py_retval, i,
+                             libvirt_virDomainCheckpointPtrWrap(chks[i]), error);
+        chks[i] = NULL;
+    }
+
+ cleanup:
+    for (i = 0; i < c_retval; i++)
+        if (chks[i])
+            virDomainCheckpointFree(chks[i]);
+    VIR_FREE(chks);
+    return py_retval;
+
+ error:
+    Py_CLEAR(py_retval);
+    goto cleanup;
+}
+
+static PyObject *
+libvirt_virDomainCheckpointListAllChildren(PyObject *self ATTRIBUTE_UNUSED,
+                                           PyObject *args)
+{
+    PyObject *py_retval = NULL;
+    virDomainCheckpointPtr *chks = NULL;
+    int c_retval;
+    ssize_t i;
+    virDomainCheckpointPtr parent;
+    PyObject *pyobj_parent;
+    unsigned int flags;
+
+    if (!PyArg_ParseTuple(args, (char *)"OI:virDomainCheckpointListAllChildren",
+                          &pyobj_parent, &flags))
+        return NULL;
+    parent = (virDomainCheckpointPtr) PyvirDomainCheckpoint_Get(pyobj_parent);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virDomainCheckpointListAllChildren(parent, &chks, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (c_retval < 0)
+        return VIR_PY_NONE;
+
+    if (!(py_retval = PyList_New(c_retval)))
+        goto cleanup;
+
+    for (i = 0; i < c_retval; i++) {
+        VIR_PY_LIST_SET_GOTO(py_retval, i,
+                             libvirt_virDomainCheckpointPtrWrap(chks[i]), error);
+        chks[i] = NULL;
+    }
+
+ cleanup:
+    for (i = 0; i < c_retval; i++)
+        if (chks[i])
+            virDomainCheckpointFree(chks[i]);
+    VIR_FREE(chks);
+    return py_retval;
+
+ error:
+    Py_CLEAR(py_retval);
+    goto cleanup;
+}
+#endif /* LIBVIR_CHECK_VERSION(5, 6, 0) */
 
 static PyObject *
 libvirt_virDomainSnapshotListNames(PyObject *self ATTRIBUTE_UNUSED,
@@ -8837,7 +8929,7 @@ libvirt_virDomainBlockCopy(PyObject *self ATTRIBUTE_UNUSED,
                                    VIR_N_ELEMENTS(virPyDomainBlockCopyParams)) < 0) {
             return NULL;
         }
-    } else {
+    } else if (pyobj_dict != Py_None) {
         PyErr_Format(PyExc_TypeError, "block params must be a dictionary");
         return NULL;
     }
@@ -9945,6 +10037,144 @@ libvirt_virNodeGetSEVInfo(PyObject *self ATTRIBUTE_UNUSED,
 }
 #endif /* LIBVIR_CHECK_VERSION(4, 5, 0) */
 
+#if LIBVIR_CHECK_VERSION(5, 5, 0)
+static PyObject *
+libvirt_virNetworkListAllPorts(PyObject *self ATTRIBUTE_UNUSED,
+                               PyObject *args)
+{
+    PyObject *pyobj_conn;
+    PyObject *py_retval = NULL;
+    virNetworkPtr conn;
+    virNetworkPortPtr *doms = NULL;
+    int c_retval = 0;
+    ssize_t i;
+    unsigned int flags;
+
+    if (!PyArg_ParseTuple(args, (char *)"OI:virNetworkListAllPorts",
+                          &pyobj_conn, &flags))
+        return NULL;
+    conn = (virNetworkPtr) PyvirNetwork_Get(pyobj_conn);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virNetworkListAllPorts(conn, &doms, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (c_retval < 0)
+        return VIR_PY_NONE;
+
+    if (!(py_retval = PyList_New(c_retval)))
+        goto cleanup;
+
+    for (i = 0; i < c_retval; i++) {
+        VIR_PY_LIST_SET_GOTO(py_retval, i, libvirt_virNetworkPortPtrWrap(doms[i]), error);
+        /* python steals the pointer */
+        doms[i] = NULL;
+    }
+
+ cleanup:
+    for (i = 0; i < c_retval; i++)
+        if (doms[i])
+            virNetworkPortFree(doms[i]);
+    VIR_FREE(doms);
+    return py_retval;
+
+ error:
+    Py_CLEAR(py_retval);
+    goto cleanup;
+}
+
+static PyObject *
+libvirt_virNetworkPortSetParameters(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    virNetworkPortPtr port;
+    PyObject *pyobj_port, *info;
+    PyObject *ret = NULL;
+    int i_retval;
+    int nparams = 0;
+    Py_ssize_t size = 0;
+    unsigned int flags;
+    virTypedParameterPtr params = NULL, new_params = NULL;
+
+    if (!PyArg_ParseTuple(args,
+                          (char *)"OOI:virNetworkPortSetParameters",
+                          &pyobj_port, &info, &flags))
+        return NULL;
+    port = (virNetworkPortPtr) PyvirNetworkPort_Get(pyobj_port);
+
+    if ((size = PyDict_Size(info)) < 0)
+        return NULL;
+
+    if (size == 0) {
+        PyErr_Format(PyExc_LookupError,
+                     "Need non-empty dictionary to set attributes");
+        return NULL;
+    }
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    i_retval = virNetworkPortGetParameters(port, &params, &nparams, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (i_retval < 0)
+        return VIR_PY_INT_FAIL;
+
+    if (nparams == 0) {
+        PyErr_Format(PyExc_LookupError,
+                     "Port has no settable attributes");
+        return NULL;
+    }
+
+    new_params = setPyVirTypedParameter(info, params, nparams);
+    if (!new_params)
+        goto cleanup;
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    i_retval = virNetworkPortSetParameters(port, new_params, size, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (i_retval < 0) {
+        ret = VIR_PY_INT_FAIL;
+        goto cleanup;
+    }
+
+    ret = VIR_PY_INT_SUCCESS;
+
+ cleanup:
+    virTypedParamsFree(params, nparams);
+    virTypedParamsFree(new_params, size);
+    return ret;
+}
+
+static PyObject *
+libvirt_virNetworkPortGetParameters(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    PyObject *pyobj_port;
+    virNetworkPortPtr port;
+    virTypedParameterPtr params = NULL;
+    int nparams = 0;
+    PyObject *dict = NULL;
+    unsigned int flags;
+    int rc;
+
+    if (!PyArg_ParseTuple(args, (char *) "OI:virNetworkPortGetParameters",
+                          &pyobj_port, &flags))
+        return NULL;
+    port = (virNetworkPortPtr) PyvirNetworkPort_Get(pyobj_port);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    rc = virNetworkPortGetParameters(port, &params, &nparams, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (rc < 0)
+        return VIR_PY_NONE;
+
+    dict = getPyVirTypedParameter(params, nparams);
+
+    virTypedParamsFree(params, nparams);
+    return dict;
+}
+#endif /* LIBVIR_CHECK_VERSION(5, 5, 0) */
 
 /************************************************************************
  *									*
@@ -10100,6 +10330,10 @@ static PyMethodDef libvirtMethods[] = {
 #if LIBVIR_CHECK_VERSION(1, 0, 3)
     {(char *) "virDomainGetJobStats", libvirt_virDomainGetJobStats, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(1, 0, 3) */
+#if LIBVIR_CHECK_VERSION(5, 6, 0)
+    {(char *) "virDomainListAllCheckpoints", libvirt_virDomainListAllCheckpoints, METH_VARARGS, NULL},
+    {(char *) "virDomainCheckpointListAllChildren", libvirt_virDomainCheckpointListAllChildren, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(5, 6, 0) */
     {(char *) "virDomainSnapshotListNames", libvirt_virDomainSnapshotListNames, METH_VARARGS, NULL},
 #if LIBVIR_CHECK_VERSION(0, 9, 13)
     {(char *) "virDomainListAllSnapshots", libvirt_virDomainListAllSnapshots, METH_VARARGS, NULL},
@@ -10192,6 +10426,11 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virDomainGetLaunchSecurityInfo", libvirt_virDomainGetLaunchSecurityInfo, METH_VARARGS, NULL},
     {(char *) "virNodeGetSEVInfo", libvirt_virNodeGetSEVInfo, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(4, 5, 0) */
+#if LIBVIR_CHECK_VERSION(5, 5, 0)
+    {(char *) "virNetworkListAllPorts", libvirt_virNetworkListAllPorts, METH_VARARGS, NULL},
+    {(char *) "virNetworkPortSetParameters", libvirt_virNetworkPortSetParameters, METH_VARARGS, NULL},
+    {(char *) "virNetworkPortGetParameters", libvirt_virNetworkPortGetParameters, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(5, 5, 0) */
     {NULL, NULL, 0, NULL}
 };
 
