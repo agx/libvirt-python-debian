@@ -4,13 +4,13 @@
  *           entry points where an automatically generated stub is
  *           unpractical
  *
- * Copyright (C) 2005, 2007-2015 Red Hat, Inc.
+ * Copyright (C) 2005-2019 Red Hat, Inc.
  *
  * Daniel Veillard <veillard@redhat.com>
  */
 
 /* Horrible kludge to work around even more horrible name-space pollution
-   via Python.h.  That file includes /usr/include/python2.5/pyconfig*.h,
+   via Python.h.  That file includes /usr/include/python3.x/pyconfig*.h,
    which has over 180 autoconf-style HAVE_* definitions.  Shame on them.  */
 #undef HAVE_PTHREAD_H
 
@@ -25,18 +25,10 @@
 #include "build/libvirt.h"
 #include "libvirt-utils.h"
 
-#if PY_MAJOR_VERSION > 2
-# ifndef __CYGWIN__
+#ifndef __CYGWIN__
 extern PyObject *PyInit_libvirtmod(void);
-# else
-extern PyObject *PyInit_cygvirtmod(void);
-# endif
 #else
-# ifndef __CYGWIN__
-extern void initlibvirtmod(void);
-# else
-extern void initcygvirtmod(void);
-# endif
+extern PyObject *PyInit_cygvirtmod(void);
 #endif
 
 #if 0
@@ -409,6 +401,19 @@ libvirt_virDomainMemoryStats(PyObject *self ATTRIBUTE_UNUSED,
             key = libvirt_constcharPtrWrap("last_update");
             break;
 #endif /* LIBVIR_CHECK_VERSION(2, 1, 0) */
+#if LIBVIR_CHECK_VERSION(4, 6, 0)
+        case VIR_DOMAIN_MEMORY_STAT_DISK_CACHES:
+            key = libvirt_constcharPtrWrap("disk_caches");
+            break;
+#endif /* LIBVIR_CHECK_VERSION(4, 6, 0) */
+#if LIBVIR_CHECK_VERSION(5, 4, 0)
+        case VIR_DOMAIN_MEMORY_STAT_HUGETLB_PGALLOC:
+            key = libvirt_constcharPtrWrap("hugetlb_pgalloc");
+            break;
+        case VIR_DOMAIN_MEMORY_STAT_HUGETLB_PGFAIL:
+            key = libvirt_constcharPtrWrap("hugetlb_pgfail");
+            break;
+#endif /* LIBVIR_CHECK_VERSION(5, 4, 0) */
         default:
             continue;
         }
@@ -7980,6 +7985,12 @@ static virPyTypedParamsHint virPyDomainMigrate3Params[] = {
 # ifdef VIR_MIGRATE_PARAM_AUTO_CONVERGE_INCREMENT
     { VIR_MIGRATE_PARAM_AUTO_CONVERGE_INCREMENT, VIR_TYPED_PARAM_INT },
 # endif
+# ifdef VIR_MIGRATE_PARAM_BANDWIDTH_POSTCOPY
+    { VIR_MIGRATE_PARAM_BANDWIDTH_POSTCOPY, VIR_TYPED_PARAM_ULLONG },
+# endif
+# ifdef VIR_MIGRATE_PARAM_PARALLEL_CONNECTIONS
+    { VIR_MIGRATE_PARAM_PARALLEL_CONNECTIONS, VIR_TYPED_PARAM_INT },
+# endif
 };
 
 
@@ -9927,7 +9938,7 @@ libvirt_virConnectBaselineHypervisorCPU(PyObject *self ATTRIBUTE_UNUSED,
     unsigned int flags;
     char **xmlCPUs = NULL;
     int ncpus = 0;
-    size_t i;
+    ssize_t i;
     char *cpu;
     PyObject *ret = NULL;
 
@@ -10174,7 +10185,181 @@ libvirt_virNetworkPortGetParameters(PyObject *self ATTRIBUTE_UNUSED,
     virTypedParamsFree(params, nparams);
     return dict;
 }
+
+static PyObject *
+libvirt_virNetworkPortGetUUID(PyObject *self ATTRIBUTE_UNUSED,
+                              PyObject *args)
+{
+    unsigned char uuid[VIR_UUID_BUFLEN];
+    virNetworkPortPtr port;
+    PyObject *pyobj_port;
+    int c_retval;
+
+    if (!PyArg_ParseTuple(args, (char *)"O:virNetworkPortGetUUID", &pyobj_port))
+        return NULL;
+    port = (virNetworkPortPtr) PyvirNetworkPort_Get(pyobj_port);
+
+    if (port == NULL)
+        return VIR_PY_NONE;
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virNetworkPortGetUUID(port, &uuid[0]);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (c_retval < 0)
+        return VIR_PY_NONE;
+
+    return libvirt_charPtrSizeWrap((char *) &uuid[0], VIR_UUID_BUFLEN);
+}
+
+static PyObject *
+libvirt_virNetworkPortGetUUIDString(PyObject *self ATTRIBUTE_UNUSED,
+                                    PyObject *args)
+{
+    char uuidstr[VIR_UUID_STRING_BUFLEN];
+    virNetworkPortPtr port;
+    PyObject *pyobj_port;
+    int c_retval;
+
+    if (!PyArg_ParseTuple(args, (char *)"O:virNetworkPortGetUUIDString",
+                          &pyobj_port))
+        return NULL;
+    port = (virNetworkPortPtr) PyvirNetworkPort_Get(pyobj_port);
+
+    if (port == NULL)
+        return VIR_PY_NONE;
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virNetworkPortGetUUIDString(port, &uuidstr[0]);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (c_retval < 0)
+        return VIR_PY_NONE;
+
+    return libvirt_constcharPtrWrap((char *) &uuidstr[0]);
+}
+
+static PyObject *
+libvirt_virNetworkPortLookupByUUID(PyObject *self ATTRIBUTE_UNUSED,
+                                   PyObject *args)
+{
+    virNetworkPortPtr c_retval;
+    virNetworkPtr net;
+    PyObject *pyobj_net;
+    unsigned char *uuid;
+    int len;
+
+    if (!PyArg_ParseTuple(args, (char *)"Oz#:virNetworkPortLookupByUUID",
+                          &pyobj_net, &uuid, &len))
+        return NULL;
+    net = (virNetworkPtr) PyvirNetwork_Get(pyobj_net);
+
+    if ((uuid == NULL) || (len != VIR_UUID_BUFLEN))
+        return VIR_PY_NONE;
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    c_retval = virNetworkPortLookupByUUID(net, uuid);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    return libvirt_virNetworkPortPtrWrap((virNetworkPortPtr) c_retval);
+}
+
+
 #endif /* LIBVIR_CHECK_VERSION(5, 5, 0) */
+
+#if LIBVIR_CHECK_VERSION(5, 7, 0)
+static PyObject *
+libvirt_virDomainGetGuestInfo(PyObject *self ATTRIBUTE_UNUSED,
+                              PyObject *args)
+{
+    PyObject *pyobj_dom = NULL;
+    PyObject *dict = NULL;
+    virDomainPtr dom = NULL;
+    virTypedParameterPtr params = NULL;
+    int nparams = 0;
+    unsigned int types;
+    unsigned int flags;
+    int rc;
+
+    if (!PyArg_ParseTuple(args, (char *) "OII:virDomainGetGuestInfo",
+                          &pyobj_dom, &types, &flags))
+        return NULL;
+    dom = (virDomainPtr) PyvirDomain_Get(pyobj_dom);
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    rc = virDomainGetGuestInfo(dom, types, &params, &nparams, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (rc < 0)
+        return VIR_PY_NONE;
+
+    dict = getPyVirTypedParameter(params, nparams);
+
+    virTypedParamsFree(params, nparams);
+    return dict;
+}
+#endif /* LIBVIR_CHECK_VERSION(5, 7, 0) */
+
+
+#if LIBVIR_CHECK_VERSION(5, 8, 0)
+static virPyTypedParamsHint virPyConnectSetIdentityParams[] = {
+    { VIR_CONNECT_IDENTITY_USER_NAME, VIR_TYPED_PARAM_STRING },
+    { VIR_CONNECT_IDENTITY_UNIX_USER_ID, VIR_TYPED_PARAM_ULLONG },
+    { VIR_CONNECT_IDENTITY_GROUP_NAME, VIR_TYPED_PARAM_STRING },
+    { VIR_CONNECT_IDENTITY_UNIX_GROUP_ID, VIR_TYPED_PARAM_ULLONG },
+    { VIR_CONNECT_IDENTITY_PROCESS_ID, VIR_TYPED_PARAM_LLONG },
+    { VIR_CONNECT_IDENTITY_PROCESS_TIME, VIR_TYPED_PARAM_ULLONG },
+    { VIR_CONNECT_IDENTITY_SASL_USER_NAME, VIR_TYPED_PARAM_STRING },
+    { VIR_CONNECT_IDENTITY_X509_DISTINGUISHED_NAME, VIR_TYPED_PARAM_STRING },
+    { VIR_CONNECT_IDENTITY_SELINUX_CONTEXT, VIR_TYPED_PARAM_STRING },
+};
+
+static PyObject *
+libvirt_virConnectSetIdentity(PyObject *self ATTRIBUTE_UNUSED,
+                              PyObject *args)
+{
+    virConnectPtr conn;
+    PyObject *pyobj_conn, *dict;
+    PyObject *ret = NULL;
+    int i_retval;
+    int nparams = 0;
+    unsigned int flags;
+    virTypedParameterPtr params = NULL;
+
+    if (!PyArg_ParseTuple(args,
+                          (char *)"OOI:virConnectSetIdentity",
+                          &pyobj_conn, &dict, &flags))
+        return NULL;
+    conn = (virConnectPtr) PyvirConnect_Get(pyobj_conn);
+
+    if (!PyDict_Check(dict)) {
+        PyErr_Format(PyExc_TypeError, "migration params must be a dictionary");
+        return NULL;
+    }
+
+    if (virPyDictToTypedParams(dict, &params, &nparams,
+                               virPyConnectSetIdentityParams,
+                               VIR_N_ELEMENTS(virPyConnectSetIdentityParams)) < 0) {
+        return NULL;
+    }
+
+    LIBVIRT_BEGIN_ALLOW_THREADS;
+    i_retval = virConnectSetIdentity(conn, params, nparams, flags);
+    LIBVIRT_END_ALLOW_THREADS;
+
+    if (i_retval < 0) {
+        ret = VIR_PY_INT_FAIL;
+        goto cleanup;
+    }
+
+    ret = VIR_PY_INT_SUCCESS;
+
+ cleanup:
+    virTypedParamsFree(params, nparams);
+    return ret;
+}
+#endif /* LIBVIR_CHECK_VERSION(5, 8, 0) */
+
 
 /************************************************************************
  *									*
@@ -10430,18 +10615,26 @@ static PyMethodDef libvirtMethods[] = {
     {(char *) "virNetworkListAllPorts", libvirt_virNetworkListAllPorts, METH_VARARGS, NULL},
     {(char *) "virNetworkPortSetParameters", libvirt_virNetworkPortSetParameters, METH_VARARGS, NULL},
     {(char *) "virNetworkPortGetParameters", libvirt_virNetworkPortGetParameters, METH_VARARGS, NULL},
+    {(char *) "virNetworkPortGetUUID", libvirt_virNetworkPortGetUUID, METH_VARARGS, NULL},
+    {(char *) "virNetworkPortGetUUIDString", libvirt_virNetworkPortGetUUIDString, METH_VARARGS, NULL},
+    {(char *) "virNetworkPortLookupByUUID", libvirt_virNetworkPortLookupByUUID, METH_VARARGS, NULL},
 #endif /* LIBVIR_CHECK_VERSION(5, 5, 0) */
+#if LIBVIR_CHECK_VERSION(5, 7, 0)
+    {(char *) "virDomainGetGuestInfo", libvirt_virDomainGetGuestInfo, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(5, 7, 0) */
+#if LIBVIR_CHECK_VERSION(5, 8, 0)
+    {(char *) "virConnectSetIdentity", libvirt_virConnectSetIdentity, METH_VARARGS, NULL},
+#endif /* LIBVIR_CHECK_VERSION(5, 8, 0) */
     {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION > 2
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-# ifndef __CYGWIN__
+#ifndef __CYGWIN__
     "libvirtmod",
-# else
+#else
     "cygvirtmod",
-# endif
+#endif
     NULL,
     -1,
     libvirtMethods,
@@ -10452,11 +10645,11 @@ static struct PyModuleDef moduledef = {
 };
 
 PyObject *
-# ifndef __CYGWIN__
+#ifndef __CYGWIN__
 PyInit_libvirtmod
-# else
+#else
 PyInit_cygvirtmod
-# endif
+#endif
 (void)
 {
     PyObject *module;
@@ -10468,25 +10661,3 @@ PyInit_cygvirtmod
 
     return module;
 }
-#else /* ! PY_MAJOR_VERSION > 2 */
-void
-# ifndef __CYGWIN__
-initlibvirtmod
-# else
-initcygvirtmod
-# endif
-(void)
-{
-    if (virInitialize() < 0)
-        return;
-
-    /* initialize the python extension module */
-    Py_InitModule((char *)
-# ifndef __CYGWIN__
-                  "libvirtmod",
-# else
-                  "cygvirtmod",
-# endif
-                  libvirtMethods);
-}
-#endif /* ! PY_MAJOR_VERSION > 2 */
