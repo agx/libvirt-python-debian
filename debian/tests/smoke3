@@ -3,7 +3,7 @@
 set -e
 set -x
 
-nosetests3
+nosetests3 -v
 
 echo 'Smoke test of python3 version succesful'
 exit 0
