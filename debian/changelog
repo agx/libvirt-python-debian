@@ -1,10 +1,11 @@
-libvirt-python (6.1.0-1~1.gbp3746e7) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @3746e7a3c712249510bc98e8253d70616e0d273b **
+libvirt-python (6.1.0-1) unstable; urgency=medium
 
   * [318c6a9] New upstream version 6.1.0
+    (Closes: #954703)
+  * [b2883ff] Drop python2 support
+    (Closes: #936934)
 
- -- Guido Günther <agx@sigxcpu.org>  Mon, 23 Mar 2020 11:56:24 +0100
+ -- Guido Günther <agx@sigxcpu.org>  Mon, 23 Mar 2020 12:24:30 +0100
 
 libvirt-python (5.6.0-1) unstable; urgency=medium
 
