@@ -9,4 +9,4 @@ include /usr/share/dpkg/buildflags.mk
 #export DH_VERBOSE=1
 
 %:
-	dh $@ --with python3,python2 --buildsystem=pybuild
+	dh $@ --with python3 --buildsystem=pybuild

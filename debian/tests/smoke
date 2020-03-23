@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-set -x
-
-nosetests
-
-echo 'Smoke test of python2 version succesful'
-exit 0
