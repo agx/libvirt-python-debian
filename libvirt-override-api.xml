@@ -64,6 +64,12 @@
       <arg name='conn' type='virConnectPtr' info='pointer to the hypervisor connection'/>
       <arg name='uuid' type='const unsigned char *' info='the UUID string for the network, must be 16 bytes'/>
     </function>
+    <function name='virNetworkPortLookupByUUID' file='python'>
+      <info>Try to lookup a port on the given network based on its UUID.</info>
+      <return type='virNetworkPortPtr' info='a new network port object or NULL in case of failure'/>
+      <arg name='net' type='virNetworkPtr' info='pointer to the network object'/>
+      <arg name='uuid' type='const unsigned char *' info='the UUID string for the network port, must be 16 bytes'/>
+    </function>
     <function name='virDomainGetInfo' file='python'>
       <info>Extract information about a domain. Note that if the connection used to get the domain is limited only a partial set of the information can be extracted.</info>
       <return type='char *' info='the list of information or None in case of error'/>
@@ -152,6 +158,16 @@
       <info>Fetch globally unique ID of the network as a string.</info>
       <return type='char *' info='the UUID string or None in case of error'/>
       <arg name='net' type='virNetworkPtr' info='a network object'/>
+    </function>
+    <function name='virNetworkPortGetUUID' file='python'>
+      <info>Extract the UUID unique Identifier of a network port.</info>
+      <return type='char *' info='the 16 bytes string or None in case of error'/>
+      <arg name='domain' type='virNetworkPortPtr' info='a network port object'/>
+    </function>
+    <function name='virNetworkPortGetUUIDString' file='python'>
+      <info>Fetch globally unique ID of the network port as a string.</info>
+      <return type='char *' info='the UUID string or None in case of error'/>
+      <arg name='net' type='virNetworkPortPtr' info='a network port object'/>
     </function>
     <function name='virStoragePoolGetUUID' file='python'>
       <info>Extract the UUID unique Identifier of a storage pool.</info>
@@ -788,6 +804,20 @@
       <return type='char *' info='None in case of error, returns a dictionary of params'/>
       <arg name='port' type='virNetworkPortPtr' info='pointer to network port object'/>
       <arg name='flags'  type='int' info='unused, always pass 0'/>
+    </function>
+    <function name='virDomainGetGuestInfo' file='python'>
+      <info>Get aggregated info from guest agent</info>
+      <return type='char *' info='None in case of error, returns a dictionary of params'/>
+      <arg name='dom' type='virDomainPtr' info='pointer to the domain'/>
+      <arg name='types' type='int' info='optional binary-OR of virDomainGuestInfoTypes'/>
+      <arg name='flags' type='int' info='unused, always pass 0'/>
+    </function>
+    <function name='virConnectSetIdentity' file='libvirt-host' module='libvirt-host'>
+      <info>Override the default identity information associated with the connection.</info>
+      <return type='int' info='0 if the identity change was accepted, -1 on error'/>
+      <arg name='conn' type='virConnectPtr' info='pointer to the hypervisor connection'/>
+      <arg name='params' type='virTypedParameterPtr' info='parameters containing the identity attributes'/>
+      <arg name='flags' type='unsigned int' info='currently unused, pass 0'/>
     </function>
   </symbols>
 </api>

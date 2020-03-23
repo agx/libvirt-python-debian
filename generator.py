@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # generate python wrappers from the XML API description
 #
@@ -261,6 +261,12 @@ def lxc_enum(type, name, value):
 def qemu_enum(type, name, value):
     if type not in qemu_enums:
         qemu_enums[type] = {}
+    if value == 'VIR_DOMAIN_AGENT_RESPONSE_TIMEOUT_BLOCK':
+        value = -2
+    elif value == 'VIR_DOMAIN_AGENT_RESPONSE_TIMEOUT_DEFAULT':
+        value = -1
+    elif value == 'VIR_DOMAIN_AGENT_RESPONSE_TIMEOUT_NOWAIT':
+        value = 0
     if onlyOverrides and name not in qemu_enums[type]:
         return
     qemu_enums[type][name] = value
@@ -424,6 +430,9 @@ skip_impl = (
     'virNetworkGetUUID',
     'virNetworkGetUUIDString',
     'virNetworkLookupByUUID',
+    'virNetworkPortGetUUID',
+    'virNetworkPortGetUUIDString',
+    'virNetworkPortLookupByUUID',
     'virDomainGetAutostart',
     'virNetworkGetAutostart',
     'virDomainBlockStats',
@@ -489,6 +498,7 @@ skip_impl = (
     'virDomainGetDiskErrors',
     'virNodeGetMemoryParameters',
     'virNodeSetMemoryParameters',
+    'virConnectSetIdentity',
     'virNodeGetCPUMap',
     'virDomainMigrate3',
     'virDomainMigrateToURI3',
@@ -507,6 +517,7 @@ skip_impl = (
     'virNodeGetSEVInfo',
     'virNetworkPortGetParameters',
     'virNetworkPortSetParameters',
+    'virDomainGetGuestInfo',
 )
 
 lxc_skip_impl = (
@@ -1082,6 +1093,10 @@ class_domain_impl = {
     "virDomainSnapshot": True,
 }
 
+class_network_impl = {
+    "virNetworkPort": True,
+}
+
 functions_noexcept = {
     'virDomainGetID': True,
     'virDomainGetName': True,
@@ -1550,6 +1565,8 @@ def buildWrappers(module):
                 classes.write("    def __init__(self, conn, _obj=None):\n")
             elif classname in [ "virDomainCheckpoint", "virDomainSnapshot" ]:
                 classes.write("    def __init__(self, dom, _obj=None):\n")
+            elif classname in [ "virNetworkPort" ]:
+                classes.write("    def __init__(self, net, _obj=None):\n")
             else:
                 classes.write("    def __init__(self, _obj=None):\n")
             if classname in [ "virDomain", "virNetwork", "virInterface",
@@ -1563,6 +1580,9 @@ def buildWrappers(module):
             elif classname in [ "virDomainCheckpoint", "virDomainSnapshot" ]:
                 classes.write("        self._dom = dom\n")
                 classes.write("        self._conn = dom.connect()\n")
+            elif classname in [ "virNetworkPort" ]:
+                classes.write("        self._net = net\n")
+                classes.write("        self._conn = net.connect()\n")
             classes.write("        if type(_obj).__name__ not in [\"PyCapsule\", \"PyCObject\"]:\n")
             classes.write("            raise Exception(\"Expected a wrapped C Object but got %s\" % type(_obj))\n")
             classes.write("        self._o = _obj\n\n")
@@ -1583,6 +1603,10 @@ def buildWrappers(module):
             if classname in class_domain_impl:
                 classes.write("    def domain(self):\n")
                 classes.write("        return self._dom\n\n")
+
+            if classname in class_network_impl:
+                classes.write("    def network(self):\n")
+                classes.write("        return self._net\n\n")
 
             classes.write("    def c_pointer(self):\n")
             classes.write("        \"\"\"Get C pointer to underlying object\"\"\"\n")

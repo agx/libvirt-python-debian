@@ -1,3 +1,195 @@
+2020-01-16 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    gitpublish: add 'libvirt-' to subject prefix
+    Reviewed-by: Ján Tomko <jtomko@redhat.com>
+    
+    
+2020-01-15 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-6.0.0
+    * setup.py: updated for the release
+    
+    
+    
+2020-01-03 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Add overrides for network port UUID getter/lookup methods
+    The generator creates broken code for all these methods.
+    
+    Reviewed-by: Fabiano Fidêncio <fidencio@redhat.com>
+    
+    
+2020-01-03 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    fix class type instantiated when listing network ports
+    Reviewed-by: Erik Skultety <eskultet@redhat.com>
+    
+    
+2019-12-09 Andrea Bolognani  <abologna@redhat.com>
+    
+    setup: Accept 'nosetests3' as nosetests binary
+    This is the name used on Ubuntu.
+    
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-12-06 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Fix RPM deps for centos 7
+    Reviewed-by: Andrea Bolognani <abologna@redhat.com>
+    
+    
+2019-12-04 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Drop support for python 2
+    python2 will be end of life by the time of the next
+    libvirt release. All our supported build targets, including
+    CentOS7, have a python3 build available.
+    
+    Reviewed-by: Michal Privoznik <mprivozn@redhat.com>
+    
+    
+2019-12-02 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.10.0
+    * setup.py: update for release
+    
+    
+    
+2019-11-28 Pavel Hrdina  <phrdina@redhat.com>
+    
+    generator.py: add mapping for VIR_DOMAIN_QEMU_AGENT_COMMAND_*
+    Libvirt commit <95f5ac9ae52455e9da47afc95fa31c9456ac27ae> changed the
+    VIR_DOMAIN_QEMU_AGENT_COMMAND_* enum values to use different enum values
+    instead of direct numbers.  We need to translate it back.
+    
+    Traceback (most recent call last):
+    File "generator.py", line 2143, in <module>
+    qemuBuildWrappers(sys.argv[1])
+    File "generator.py", line 2008, in qemuBuildWrappers
+    items.sort(key=lambda i: (int(i[1]), i[0]))
+    File "generator.py", line 2008, in <lambda>
+    items.sort(key=lambda i: (int(i[1]), i[0]))
+    ValueError: invalid literal for int() with base 10: 'VIR_DOMAIN_AGENT_RESPONSE_TIMEOUT_BLOCK'
+    
+    Reviewed-by: Peter Krempa <pkrempa@redhat.com>
+    
+    
+2019-11-06 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.9.0
+    * setup.py: update for release
+    
+    
+    
+2019-10-05 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.8.0
+    * setup.py: updated version
+    
+    
+    
+2019-09-23 Pavel Hrdina  <phrdina@redhat.com>
+    
+    virDomainMigrate3Params: add missing parallel connections param
+    Introduced in libvirt 5.2.0 by commit <d3ea986af24>.
+    
+    Reported-by: Liping Cheng <lcheng@redhat.com>
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-09-23 Pavel Hrdina  <phrdina@redhat.com>
+    
+    virDomainMigrate3Params: add missing bandwidth postcopy param
+    Introduced in libvirt 5.1.0 by commit <c830187a015>.
+    
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-09-20 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    Custom impl for virConnectSetIdentity which can't be generated
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2019-09-20 Pavel Hrdina  <phrdina@redhat.com>
+    
+    virDomainMemoryStats: include hugetlb pgalloc and pgfail
+    Introduced in libvirt 5.4.0 by commit <a699b19f6c3>.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1683516
+    
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-09-20 Pavel Hrdina  <phrdina@redhat.com>
+    
+    virDomainMemoryStats: include disk caches
+    Introduced in libvirt 4.6.0 by commit <aee04655089>.
+    
+    Resolves: https://bugzilla.redhat.com/show_bug.cgi?id=1683516
+    
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-09-12 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    sanitytest: whitelist 'network' method as having no C impl
+    
+    
+2019-09-12 Daniel P. Berrangé  <berrange@redhat.com>
+    
+    generator: fix constructor for virNetworkPort
+    The virNetworkPort class is passed both the virNetwork parent
+    python class and the virNetworkPort C object. This needs special
+    handling in the generator, similar to how virDomainSnapshots are
+    dealt with.
+    
+    Reviewed-by: Michal Privoznik <mprivozn@redhat.com>
+    
+    
+2019-09-05 Cole Robinson  <crobinso@redhat.com>
+    
+    Fix -Wsign-compare warnings
+    libvirt-override.c: In function ‘libvirt_virConnectBaselineHypervisorCPU’:
+    libvirt-override.c:9946:23: warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
+    libvirt-override.c:9961:19: warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
+    
+    Use ssize_t as was similarly done in 75ec2acb6163b
+    
+    Reviewed-by: Ján Tomko <jtomko@redhat.com>
+    Reviewed-by: Pavel Hrdina <phrdina@redhat.com>
+    
+    
+2019-09-03 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python 5.7.0
+    
+    
+2019-09-03 Nir Soffer  <nirsof@gmail.com>
+    
+    spec: Build python2 package in fedora < 31
+    Since commit ee0cfbe65c5d (spec: Unconditionally build python2 on
+    Fedora) python2-libvirt is not built on any Fedora version.
+    
+    Fix the spec to drop python2-libvirt on Fedora 31.
+    
+    Reviewed-by: Cole Robinson <crobinso@redhat.com>
+    
+    
+2019-08-29 Michal Privoznik  <mprivozn@redhat.com>
+    
+    Implement virDomainGetGuestInfo
+    Reviewed-by: Daniel P. Berrangé <berrange@redhat.com>
+    
+    
+2019-08-05 Daniel Veillard  <veillard@redhat.com>
+    
+    Release of libvirt-python-5.6.0
+    * setup.py: updated for new release
+    
+    
+    
 2019-07-29 Eric Blake  <eblake@redhat.com>
     
     Define virDomainCheckpointPtr typedef on old libvirt
